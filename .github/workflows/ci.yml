@@ -1,0 +1,45 @@
+# This workflow will
+name: Run the tests and obtain the coverage
+
+# Trigger the workflow automatically on any push event
+on:
+  push:
+    # Prevent triggering the workflow on badge updates
+    paths-ignore:
+      - '.github/**'
+
+
+# Run the tests, obtain the coverage and update the badge
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      - name: Install Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Run the tests, generating coverage
+        run: |
+          deno test -A --coverage
+          deno coverage --lcov > coverage/lcov.info
+
+      - name: Generate the coverage badge
+        run: |
+          deno -A .github/scripts/generate-badge.ts coverage/lcov.info .github/badges/coverage.svg
+
+      - name: Update the badges in the repo (if changed)
+        env:
+          GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+          GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+        run: |
+          if [[ `git status --porcelain` ]]; then
+            git config --global user.name "${{ env.GIT_USERNAME }}"
+            git config --global user.email "${{ env.GIT_EMAIL }}"
+            git add -A
+            git commit -m "chore(badge): update test coverage badge"
+            git push
+          fi

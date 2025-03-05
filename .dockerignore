@@ -1,0 +1,4 @@
+.git
+.gitignore
+# The contents of the gitignore will be appended here during the github build action.
+# DO NOT MODIFY

@@ -2,8 +2,7 @@ import { Application } from "jsr:@oak/oak/application";
 import { config } from "npm:dotenv";
 
 import * as lt from "./controllers/localtunnel.ts";
-//import * as db from "./controllers/db.ts";
-import * as db from "./controllers/sequelize.ts";
+import * as db from "./controllers/db.ts";
 
 import root from "./routes/root.ts";
 

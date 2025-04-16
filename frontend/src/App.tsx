@@ -1,34 +1,53 @@
-import { useState } from "react";
-import "./styles/App.css";
-import viteLogo from "./assets/vite.svg";
-import reactLogo from "./assets/react.svg";
+import { css } from "npm:@emotion/css";
 
+import Avatar from "./components/Avatar.tsx";
+import Coins from "./components/Coins.tsx";
+import MainMenu from "./views/MainMenu.tsx";
+
+const styles = {
+  header: css`
+    background-color: #333333;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px 20px 0px 20px;
+    height: 12vh;
+    min-height: 80px;
+  `,
+  title: css`
+    margin: 10vw;
+  `,
+  content: css`
+    height: 80vh;
+  `,
+  footer: css`
+    background-color: #333333;
+    color: white;
+    text-align: center;
+    position: fixed;
+    padding: 0px;
+    bottom: 0;
+    width: 100vw;
+    height: 8vh;
+    min-height: 50px;
+  `,
+};
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button type="button" onClick={() => setCount((count: number) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <header className={styles.header}>
+        <Avatar />
+        <h1 className={styles.title}>Goaldraft</h1>
+        <Coins />
+      </header>
+      <main className={styles.content}>
+        <MainMenu />
+      </main>
+      <footer className={styles.footer}>
+        <p>&copy; 2025 Goaldraft. All rights reserved.</p>
+      </footer>
     </>
   );
 }

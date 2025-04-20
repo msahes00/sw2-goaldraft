@@ -1,8 +1,11 @@
+import { Route, Routes } from "npm:react-router";
 import { css } from "npm:@emotion/css";
 
 import Avatar from "./components/Avatar.tsx";
 import Coins from "./components/Coins.tsx";
+
 import MainMenu from "./views/MainMenu.tsx";
+import NotFound from "./views/NotFound.tsx";
 
 const styles = {
   header: css`
@@ -43,7 +46,10 @@ function App() {
         <Coins />
       </header>
       <main className={styles.content}>
-        <MainMenu />
+        <Routes>
+          <Route path="/" element={<MainMenu />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </main>
       <footer className={styles.footer}>
         <p>&copy; 2025 Goaldraft. All rights reserved.</p>

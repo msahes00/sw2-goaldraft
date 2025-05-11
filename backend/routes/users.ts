@@ -1,8 +1,9 @@
 import { Router } from "jsr:@oak/oak/router";
-import { connect } from "../controllers/db.ts";  // Ajusta esto dependiendo de dónde se encuentra tu archivo de conexión a la base de datos
+import { connect } from "../controllers/db.ts"; 
 
 const router = new Router();
 
+//POST user data
 router.post("/login", async (ctx) => {
 
   const sequelize = await connect();

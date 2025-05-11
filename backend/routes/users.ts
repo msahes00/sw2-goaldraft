@@ -19,8 +19,9 @@ router.post("/login", async (ctx) => {
     return;
   }
 
-  const body = await ctx.request.body.value;
+ const body = await ctx.request.body.json();
 
+  console.log("Body recibido:", body);
   if (!body || typeof body !== "object" || !body.username || !body.password) {
     ctx.response.status = 400;
     ctx.response.body = { error: "Expected application/json with username and password" };

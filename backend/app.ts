@@ -15,6 +15,7 @@ const PORT = parseInt(Deno.env.get("PORT") || "3000");
 
 // Create the Oak application and add the root router
 const app = new Application();
+
 app.use(root.routes());
 app.use(root.allowedMethods());
 

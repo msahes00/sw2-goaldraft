@@ -4,39 +4,45 @@ function LoginView() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
 
-  const handleLogin = () => {
-
+  const handleAction = () => {
     if (!username || !password) {
       setMessage("Please enter both username and password.");
       return;
     }
 
-    fetch("http://localhost:3000/login", {
+    const endpoint = isRegisterMode ? "/register" : "/login";
+
+    fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     })
       .then(async (response) => {
         const data = await response.json();
-        console.log(data); 
+        console.log(data);
         if (response.ok) {
-          setMessage(`Login successful. Welcome, ${data.username}!`);
+          setMessage(
+            isRegisterMode
+              ? `Registration successful. Welcome, ${data.username}!`
+              : `Login successful. Welcome, ${data.username}!`
+          );
         } else {
-          setMessage(data.error || "Login failed");
+          setMessage(data.error || (isRegisterMode ? "Registration failed" : "Login failed"));
         }
       })
       .catch((error) => {
-        console.error("Login error:", error);
+        console.error(`${isRegisterMode ? "Registration" : "Login"} error:`, error);
         setMessage("Network error");
       });
   };
 
   return (
     <div>
-      <h1>Login</h1>
+      <h1>{isRegisterMode ? "Register" : "Login"}</h1>
       <label>
-        Username:
+        {isRegisterMode ? "New Username:" : "Username:"}
         <input
           type="text"
           value={username}
@@ -45,7 +51,7 @@ function LoginView() {
       </label>
       <br />
       <label>
-        Password:
+        {isRegisterMode ? "New Password:" : "Password:"}
         <input
           type="password"
           value={password}
@@ -53,8 +59,22 @@ function LoginView() {
         />
       </label>
       <br />
-      <button onClick={handleLogin}>Log In</button>
+      <button onClick={handleAction}>
+        {isRegisterMode ? "Register" : "Log In"}
+      </button>
       {message && <p>{message}</p>}
+      <br />
+      {isRegisterMode ? (
+        <>
+          <p>¿Ya tienes cuenta?</p>
+          <button onClick={() => setIsRegisterMode(false)}>Iniciar sesión</button>
+        </>
+      ) : (
+        <>
+          <p>¿No tienes cuenta?</p>
+          <button onClick={() => setIsRegisterMode(true)}>Registrarte</button>
+        </>
+      )}
     </div>
   );
 }

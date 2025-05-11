@@ -9,13 +9,16 @@ let instance: Sequelize | null = null;
  */
 const connect = async () => {
 
+  // Bypass if already connected
+  if (instance) return instance;
+
   // Obtain the connection URI from the environment variables
   const dbPort = parseInt(Deno.env.get("DB_PORT") || "3306");
   const dbHost = Deno.env.get("DB_HOST") || "127.0.0.1";
   const dbUser = Deno.env.get("DB_USER") || "admin";
   const dbPass = Deno.env.get("DB_PASS") || "admin";
   const dbName = Deno.env.get("DB_NAME") || "db";
-  const dbUri = `mysql://${dbUser}:${dbPass}@${dbHost}:${dbPort}/${dbName}`
+  const dbUri = `mysql://${dbUser}:${dbPass}@${dbHost}:${dbPort}/${dbName}`;
 
   // Create a new Sequelize instance
   const sequelize = new Sequelize(dbUri, { dialect: "mysql" });

@@ -2,7 +2,7 @@ import { Router } from "jsr:@oak/oak/router";
 
 import frontend from "./frontend.ts";
 import system from "./system.ts";
-import users from "./users.ts";
+import users from "./user.ts";
 
 // Prepare the root router
 const router = new Router();

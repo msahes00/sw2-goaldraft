@@ -1,8 +1,8 @@
 services:
   app:
     image: ghcr.io/msahes00/sw2-goaldraft:latest
-    # For development, comment the line above and uncomment the line below
-    # build: .
+    # The line below allows for local testing via the --build flag
+    build: .
     restart: unless-stopped
     ports:
       - "${PORT}:${PORT}"
@@ -40,6 +40,9 @@ services:
       MYSQL_PASSWORD: ${DB_PASS}
     volumes:
       - db:/var/lib/mysql
+    # Comment the port section below for production or deploy with firewall to avoid exposing the database
+    ports:
+      - "${DB_PORT}:3306"
 
 volumes:
   db:

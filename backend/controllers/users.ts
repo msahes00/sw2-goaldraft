@@ -4,13 +4,18 @@ import { hash } from "https://deno.land/x/bcrypt/mod.ts";
 import type { Context } from "jsr:@oak/oak/context";
 
 export const getUser = async (ctx: Context) => {
-  const username = ctx.params.username;
+  // @ts-ignore: ctx?.params?.username; will be .... TODO
+  const username = ctx?.params?.username;
   const sequelize = await connect();
-
+  if (!sequelize) {
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Database not initialized" };
+    return;
+  }
   const [results] = await sequelize.query(
     `SELECT username, coins, collection FROM users WHERE username = ?`,
     { replacements: [username] }
-  );
+  )as [any[], unknown];
 
   if (results.length === 0) {
     ctx.response.status = 404;
@@ -22,8 +27,14 @@ export const getUser = async (ctx: Context) => {
 };
 
 export const updateUser = async (ctx: Context) => {
-  const username = ctx.params.username;
+  // @ts-ignore: ctx?.params?.username; will be .... TODO
+  const username = ctx?.params?.username;
   const sequelize = await connect();
+  if (!sequelize) {
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Database not initialized" };
+    return;
+  }
 
   const body = await ctx.request.body.json();
   const { coins, collection } = body;
@@ -43,6 +54,11 @@ export const updateUser = async (ctx: Context) => {
 
 export const registerUser = async (ctx: Context) => {
   const sequelize = await connect();
+  if (!sequelize) {
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Database not initialized" };
+    return;
+  }
 
   if (!ctx.request.hasBody) {
     ctx.response.status = 400;
@@ -88,6 +104,11 @@ export const registerUser = async (ctx: Context) => {
 
 export const loginUser = async (ctx: Context) => {
   const sequelize = await connect();
+  if (!sequelize) {
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Database not initialized" };
+    return;
+  }
 
   if (!ctx.request.hasBody) {
     ctx.response.status = 400;
@@ -105,9 +126,9 @@ export const loginUser = async (ctx: Context) => {
   }
 
   const [results] = await sequelize.query(
-    `SELECT username, password FROM users WHERE username = ?`,
-    { replacements: [username] }
-  );
+  `SELECT username, password FROM users WHERE username = ?`,
+  { replacements: [username] }
+) as [Array<{ username: string; password: string }>, unknown];
 
   if (results.length === 0) {
     ctx.response.status = 401;
@@ -116,6 +137,7 @@ export const loginUser = async (ctx: Context) => {
   }
 
   const user = results[0];
+
   const passwordMatch = await bcrypt.compare(password, user.password);
 
   if (!passwordMatch) {

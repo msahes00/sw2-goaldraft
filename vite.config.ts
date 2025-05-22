@@ -20,4 +20,12 @@ export default defineConfig({
   optimizeDeps: {
     include: ["react/jsx-runtime"],
   },
+  ssr: {
+    noExternal: ["npm:@emotion/css"],
+  },
+  resolve: {
+    alias: {
+      "npm:@emotion/css": "@emotion/css",
+    },
+  },
 });

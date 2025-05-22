@@ -40,6 +40,9 @@ services:
       MYSQL_PASSWORD: ${DB_PASS}
     volumes:
       - db:/var/lib/mysql
+    # Comment the port section below for production or deploy with firewall to avoid exposing the database
+    ports:
+      - "${DB_PORT}:3306"
 
 volumes:
   db:

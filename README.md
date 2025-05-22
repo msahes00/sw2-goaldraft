@@ -136,6 +136,9 @@ DB_HOST = "127.0.0.1"
 
 # El puerto en el que la aplicación estará escuchando
 PORT = 3000
+
+# El token para acceder a la api (https://api.futdatabase.com)
+FUTAPI_TOKEN=""
 ```
 
 Para la version de producción, se proporciona un archivo `example.env` de ejemplo, con todas las variables necesarias para su correcto funcionamiento.  
@@ -189,6 +192,12 @@ Para detener el despliegue, se debe ejecutar el siguiente comando:
 
 ```bash
 $ docker-compose down
+```
+
+Para probar el desplieque con los cambios en local, se utiliza el siguiente commando:
+
+```bash
+$ docker-compose up -d --build
 ```
 
 > Dependiendo de la instalación de Docker, el comando `docker-compose` puede ser sustituido por `docker compose`.

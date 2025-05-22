@@ -82,7 +82,7 @@ Este proyecto ha sido desarrollado utilizando:
 │   ├── public/                     # Archivos de acceso publico (manifiestos, iconos...)
 │   │   └── *
 │   ├── src/                        
-│   │   ├── styles/                 # Directorio para almacenar los estilos css
+│   │   ├── styles/                 # Directorio para almacenar los estilos css especificos
 │   │   │   └── *.css
 │   │   ├── assets/                 # Archivos estáticos (imágenes, SVGs, tipografias)
 │   │   │   └── *
@@ -91,7 +91,8 @@ Este proyecto ha sido desarrollado utilizando:
 │   │   ├── views/                  # Directorio para almacenar las distintas paginas
 │   │   │   └── *.tsx
 │   │   └── App.tsx                 # Vista principal de la aplicacion
-│   ├── main.tsx                    # Punto de entrada para el frontend
+│   ├── index.tsx                   # Punto de entrada para el frontend
+│   ├── index.css                   # Estilos globales de la aplicacion
 │   └── index.html
 ├── .gitignore                      # Archivos que no se van a subir al repositorio
 ├── .dockerignore                   # Archivos que no se van a utillizar en Docker

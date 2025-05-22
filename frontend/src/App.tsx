@@ -3,7 +3,7 @@ import { css } from "npm:@emotion/css";
 
 import Avatar from "./components/Avatar.tsx";
 import Coins from "./components/Coins.tsx";
-
+import LogView from "./components/LogView";
 import MainMenu from "./views/MainMenu.tsx";
 import NotFound from "./views/NotFound.tsx";
 
@@ -47,6 +47,7 @@ function App() {
       </header>
       <main className={styles.content}>
         <Routes>
+          <Route path="/login" element={ <LogView />} />
           <Route path="/" element={<MainMenu />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

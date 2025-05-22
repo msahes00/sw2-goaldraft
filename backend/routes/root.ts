@@ -1,5 +1,6 @@
 import { Router } from "jsr:@oak/oak/router";
 
+import users from "./users.ts";
 import frontend from "./frontend.ts";
 import system from "./system.ts";
 import players from "./player.ts";
@@ -8,6 +9,7 @@ import players from "./player.ts";
 const router = new Router();
 
 // TODO: Add the rest of the routers here
+
 router.use("/api/players", players.routes(), players.allowedMethods());
 router.use("/system", system.routes(), system.allowedMethods());
 router.use(frontend.routes(), frontend.allowedMethods());

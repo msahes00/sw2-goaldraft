@@ -41,7 +41,6 @@ const updateUser = async (ctx: Context) => {
       return;
     }
 
-    // Leer JSON del cuerpo
     const { newUsername, password } = await ctx.request.body.json();
 
     const user = await User.findOne({ where: { username } });
@@ -51,7 +50,6 @@ const updateUser = async (ctx: Context) => {
       return;
     }
 
-    // Validar nuevo username
     if (newUsername && newUsername !== username) {
       const exists = await User.findOne({ where: { username: newUsername } });
       if (exists) {
@@ -59,11 +57,13 @@ const updateUser = async (ctx: Context) => {
         ctx.response.body = { error: "Username already exists" };
         return;
       }
+      user.username = newUsername;
     }
 
-    // Actualizar y guardar
-    user.username = newUsername || user.username;
-    user.password = password    || user.password;
+    if (password) {
+      user.password = password;
+    }
+
     await user.save();
 
     ctx.response.status = 200;

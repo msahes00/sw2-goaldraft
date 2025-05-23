@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "npm:sequelize";
 
 class User extends Model {
+  declare id: number;
   declare username: string;
   declare password: string;
   declare coins: number;
@@ -10,9 +11,15 @@ class User extends Model {
 const initialize = (sequelize: Sequelize) => {
   User.init(
     {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
       username: {
         type: DataTypes.STRING(10),
-        primaryKey: true,
+        allowNull: false,
+        unique: true,
       },
       password: {
         type: DataTypes.STRING(100),

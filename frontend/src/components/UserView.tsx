@@ -22,7 +22,7 @@ function UserView() {
     fetch(`/users/${username}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: newUsername, password }),
+      body: JSON.stringify({ newUsername, password }),
     })
       .then((response) => {
         if (response.ok) {

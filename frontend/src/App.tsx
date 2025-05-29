@@ -1,5 +1,6 @@
 import { Route, Routes } from "npm:react-router";
 import { css } from "npm:@emotion/css";
+import UserView from "./components/UserView";
 
 import Avatar from "./components/Avatar.tsx";
 import Coins from "./components/Coins.tsx";

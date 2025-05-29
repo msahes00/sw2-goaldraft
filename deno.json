@@ -13,6 +13,7 @@
     "@types/react": "npm:@types/react@^18.3.12",
     "@vitejs/plugin-react": "npm:@vitejs/plugin-react@^4.3.3",
     "dotenv": "npm:dotenv@^16.4.7",
+    "koa-body": "npm:koa-body@^6.0.1",
     "localtunnel": "npm:localtunnel@^2.0.2",
     "mysql2": "npm:mysql2@^3.12.0",
     "react": "npm:react@^18.3.1",

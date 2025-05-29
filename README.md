@@ -82,7 +82,7 @@ Este proyecto ha sido desarrollado utilizando:
 │   ├── public/                     # Archivos de acceso publico (manifiestos, iconos...)
 │   │   └── *
 │   ├── src/                        
-│   │   ├── styles/                 # Directorio para almacenar los estilos css
+│   │   ├── styles/                 # Directorio para almacenar los estilos css especificos
 │   │   │   └── *.css
 │   │   ├── assets/                 # Archivos estáticos (imágenes, SVGs, tipografias)
 │   │   │   └── *
@@ -91,7 +91,8 @@ Este proyecto ha sido desarrollado utilizando:
 │   │   ├── views/                  # Directorio para almacenar las distintas paginas
 │   │   │   └── *.tsx
 │   │   └── App.tsx                 # Vista principal de la aplicacion
-│   ├── main.tsx                    # Punto de entrada para el frontend
+│   ├── index.tsx                   # Punto de entrada para el frontend
+│   ├── index.css                   # Estilos globales de la aplicacion
 │   └── index.html
 ├── .gitignore                      # Archivos que no se van a subir al repositorio
 ├── .dockerignore                   # Archivos que no se van a utillizar en Docker
@@ -136,6 +137,9 @@ DB_HOST = "127.0.0.1"
 
 # El puerto en el que la aplicación estará escuchando
 PORT = 3000
+
+# El token para acceder a la api (https://api.futdatabase.com)
+FUTAPI_TOKEN=""
 ```
 
 Para la version de producción, se proporciona un archivo `example.env` de ejemplo, con todas las variables necesarias para su correcto funcionamiento.  
@@ -189,6 +193,12 @@ Para detener el despliegue, se debe ejecutar el siguiente comando:
 
 ```bash
 $ docker-compose down
+```
+
+Para probar el desplieque con los cambios en local, se utiliza el siguiente commando:
+
+```bash
+$ docker-compose up -d --build
 ```
 
 > Dependiendo de la instalación de Docker, el comando `docker-compose` puede ser sustituido por `docker compose`.

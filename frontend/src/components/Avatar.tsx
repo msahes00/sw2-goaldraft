@@ -3,7 +3,7 @@ import { css } from "npm:@emotion/css";
 import logo from "../assets/logo.svg";
 
 const styles = {
-    container: css`
+  container: css`
     background-color: #ffffff;
     display: flex;
     justify-content: center;
@@ -18,13 +18,13 @@ const styles = {
 };
 
 function Avatar() {
-    return (
-        <>
-            <div className={styles.container}>
-                <img src={logo} alt="My Account" />
-            </div>
-        </>
-    );
+  return (
+    <>
+      <div className={styles.container}>
+        <img src={logo} alt="My Account" />
+      </div>
+    </>
+  );
 }
 
 export default Avatar;

@@ -28,7 +28,7 @@ const connect = async () => {
     // Test the connection
     await sequelize.authenticate();
     console.log("Sequelize connected to the database.");
-    
+
     // Store the instance and return it
     instance = sequelize;
     return sequelize;

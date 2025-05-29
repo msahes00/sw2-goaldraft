@@ -12,6 +12,7 @@ const getToken = () => Deno.env.get("FUTAPI_TOKEN") || "";
  */
 const getAll = async (ctx: Context) => {
 
+
   try {
     // Get all the cards
     const players = await Player.findAll();

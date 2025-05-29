@@ -1,7 +1,7 @@
-import { Route, Routes, useNavigate } from "npm:react-router";
+import { Route, Routes, useNavigate, useLocation, Navigate } from "npm:react-router";
+import { useState, useEffect } from "react";
 import { css } from "npm:@emotion/css";
 import UserView from "./views/UserView.tsx";
-
 import Avatar from "./components/Avatar.tsx";
 import Coins from "./components/Coins.tsx";
 import LogView from "./views/LogView";
@@ -40,6 +40,18 @@ const styles = {
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const [loggedUser, setLoggedUser] = useState(null);
+
+  useEffect(() => {
+    if (!loggedUser && location.pathname !== "/login") {
+      navigate("/login", { replace: true });
+    }
+    if (loggedUser && location.pathname === "/login") {
+      navigate("/", { replace: true });
+    }
+  }, [loggedUser, location.pathname, navigate]);
 
   return (
     <>
@@ -48,13 +60,30 @@ function App() {
           <Avatar />
         </span>
         <h1 className={styles.title}>Goaldraft</h1>
-        <Coins />
+        <Coins user={loggedUser} />
       </header>
       <main className={styles.content}>
         <Routes>
-          <Route path="/login" element={<LogView />} />
-          <Route path="/user" element={<UserView />} />
-          <Route path="/" element={<MainMenu />} />
+          <Route
+            path="/login"
+            element={<LogView setLoggedUser={setLoggedUser} />}
+          />
+          <Route
+            path="/user"
+            element={
+              loggedUser ? (
+                <UserView user={loggedUser} setLoggedUser={setLoggedUser} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/"
+            element={
+              loggedUser ? <MainMenu /> : <Navigate to="/login" replace />
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

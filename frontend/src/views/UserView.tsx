@@ -1,33 +1,25 @@
 import { useState, useEffect } from "react";
 
-function UserView() {
-  const [username, setUsername] = useState("juan123");
-  const [newUsername, setNewUsername] = useState("");
+function UserView({ user, setLoggedUser }) {
+  const [newUsername, setNewUsername] = useState(user.username);
   const [password, setPassword] = useState("");
-  const [userData, setUserData] = useState<any>(null);
 
   useEffect(() => {
-    // Fetch user data for "juan123"
-    fetch(`/users/${username}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setUserData(data);
-        setNewUsername(data.username);
-      })
-      .catch((error) => console.error("Error fetching user data:", error));
-  }, [username]);
+    setNewUsername(user.username);
+  }, [user.username]);
 
   const handleUpdate = () => {
-    // Update username and password
-    fetch(`/users/${username}`, {
+    fetch(`/users/${user.username}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ newUsername, password }),
     })
       .then((response) => {
         if (response.ok) {
+          fetch(`/users/${newUsername}`)
+            .then((res) => res.json())
+            .then((userData) => setLoggedUser(userData));
           alert("User updated successfully");
-          setUsername(newUsername); // Update the username in the state
         } else {
           response.json().then((data) => alert(data.error || "Update failed"));
         }
@@ -38,30 +30,26 @@ function UserView() {
   return (
     <div>
       <h1>User View</h1>
-      {userData ? (
-        <div>
-          <p>Current Username: {userData.username}</p>
-          <label>
-            New Username:
-            <input
-              type="text"
-              value={newUsername}
-              onChange={(e) => setNewUsername(e.target.value)}
-            />
-          </label>
-          <label>
-            New Password:
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </label>
-          <button onClick={handleUpdate}>Update</button>
-        </div>
-      ) : (
-        <p>Loading user data...</p>
-      )}
+      <div>
+        <p>Current Username: {user.username}</p>
+        <label>
+          New Username:
+          <input
+            type="text"
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value)}
+          />
+        </label>
+        <label>
+          New Password:
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </label>
+        <button onClick={handleUpdate}>Update</button>
+      </div>
     </div>
   );
 }

@@ -1,10 +1,10 @@
-import { Route, Routes } from "npm:react-router";
+import { Route, Routes, useNavigate } from "npm:react-router";
 import { css } from "npm:@emotion/css";
-import UserView from "./components/UserView";
+import UserView from "./views/UserView.tsx";
 
 import Avatar from "./components/Avatar.tsx";
 import Coins from "./components/Coins.tsx";
-import LogView from "./components/LogView";
+import LogView from "./views/LogView";
 import MainMenu from "./views/MainMenu.tsx";
 import NotFound from "./views/NotFound.tsx";
 
@@ -39,16 +39,21 @@ const styles = {
 };
 
 function App() {
+  const navigate = useNavigate();
+
   return (
     <>
       <header className={styles.header}>
-        <Avatar />
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/user")}>
+          <Avatar />
+        </span>
         <h1 className={styles.title}>Goaldraft</h1>
         <Coins />
       </header>
       <main className={styles.content}>
         <Routes>
-          <Route path="/login" element={ <LogView />} />
+          <Route path="/login" element={<LogView />} />
+          <Route path="/user" element={<UserView />} />
           <Route path="/" element={<MainMenu />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

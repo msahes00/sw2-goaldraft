@@ -1,6 +1,4 @@
 import { Router } from "jsr:@oak/oak/router";
-
-import users from "./users.ts";
 import frontend from "./frontend.ts";
 import system from "./system.ts";
 import players from "./player.ts";

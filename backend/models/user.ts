@@ -5,7 +5,7 @@ class User extends Model {
   declare username: string;
   declare password: string;
   declare coins: number;
-  declare colection: string;
+  declare collection: string;
 }
 
 const initialize = (sequelize: Sequelize) => {
@@ -29,7 +29,7 @@ const initialize = (sequelize: Sequelize) => {
         type: DataTypes.INTEGER,
         defaultValue: 0,
       },
-      colection: {
+      collection: {
         type: DataTypes.STRING(150),
         allowNull: true,
       },

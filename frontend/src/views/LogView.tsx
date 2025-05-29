@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function LoginView() {
+function LoginView({ setLoggedUser }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -21,19 +21,20 @@ function LoginView() {
     })
       .then(async (response) => {
         const data = await response.json();
-        console.log(data);
         if (response.ok) {
           setMessage(
             isRegisterMode
               ? `Registration successful. Welcome, ${data.username}!`
               : `Login successful. Welcome, ${data.username}!`
           );
+          fetch(`/users/${username}`)
+            .then((res) => res.json())
+            .then((userData) => setLoggedUser(userData));
         } else {
           setMessage(data.error || (isRegisterMode ? "Registration failed" : "Login failed"));
         }
       })
       .catch((error) => {
-        console.error(`${isRegisterMode ? "Registration" : "Login"} error:`, error);
         setMessage("Network error");
       });
   };

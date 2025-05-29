@@ -14,13 +14,11 @@ const styles = {
   `,
 };
 
-function Coins() {
+function Coins({ user }) {
   return (
-    <>
-      <div className={styles.container}>
-        <p className={styles.text}>9999+</p>
-      </div>
-    </>
+    <div className={styles.container}>
+      <p className={styles.text}>{user ? user.coins : "--"}</p>
+    </div>
   );
 }
 

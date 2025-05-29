@@ -1,5 +1,6 @@
 // Import dependencies
 import { Sequelize } from "npm:sequelize";
+import "https://deno.land/x/dotenv/load.ts";
 
 let instance: Sequelize | null = null;
 

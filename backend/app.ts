@@ -23,7 +23,6 @@ const app = new Application();
 app.use(logger(LOG_LEVEL));
 app.use(root.routes(), root.allowedMethods());
 
-
 // Main program entry point
 if (import.meta.main) {
 

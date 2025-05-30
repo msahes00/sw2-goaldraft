@@ -1,5 +1,5 @@
 import { Router } from "jsr:@oak/oak/router";
-import { getUser, updateUser, registerUser, loginUser } from "../controllers/user.ts";
+import { getUser, updateUser, registerUser, loginUser, getUserPlayers } from "../controllers/user.ts";
 
 const router = new Router();
 
@@ -27,4 +27,9 @@ router.post("/register", registerUser);
  */
 router.post("/login", loginUser);
 
+/**
+ * GET /users/:username/players
+ * Obtener todas las cartas de un usuario
+ */
+router.get("/users/:username/players", getUserPlayers);
 export default router;

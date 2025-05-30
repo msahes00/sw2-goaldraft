@@ -10,7 +10,7 @@ export const getUser = async (ctx: Context) => {
   try {
     const user = await User.findOne({
       where: { username },
-      attributes: ["username", "coins", "collection"],
+      attributes: ["username", "coins"],
     });
     if (!user) {
       ctx.response.status = 404;
@@ -134,5 +134,42 @@ export const loginUser = async (ctx: Context) => {
   } catch (error) {
     ctx.response.status = 500;
     ctx.response.body = { error: "Failed to login" };
+  }
+};
+
+export const getUserPlayers = async (ctx: Context) => {
+  await connect();
+  const username = ctx.params.username;
+
+  try {
+    const user = await User.findOne({
+      where: { username },
+      include: {
+        model: Player,
+        as: "players", // el alias definido en `belongsToMany`
+        through: { attributes: [] }, // para no incluir info de la tabla intermedia
+      },
+    });
+
+    if (!user) {
+      ctx.response.status = 404;
+      ctx.response.body = { error: "Usuario no encontrado" };
+      return;
+    }
+
+    const players = user.players.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      image: `data:image/png;base64,${btoa(
+          String.fromCharCode(...new Uint8Array(p.image))
+      )}`,
+    }));
+
+    ctx.response.status = 200;
+    ctx.response.body = players;
+  } catch (error) {
+    console.error("Error en getUserPlayers:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Error al obtener las cartas del usuario" };
   }
 };

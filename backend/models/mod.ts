@@ -1,13 +1,15 @@
 import { Sequelize } from "npm:sequelize";
 
-// TODO: import all the models
-import * as users from "./user.ts";
-import * as players from "./player.ts";
+// Importar los modelos y funciones
+import { User, UserPlayer, initialize as initializeUser, defineUserAssociations } from "./user.ts";
+import { Player, initialize as initializePlayer } from "./player.ts";
 
-// Initialize all the models at once with the sequelize instance
+// Inicializar todos los modelos
 const initialize = (sequelize: Sequelize) => {
-    users.initialize(sequelize);
-    players.initialize(sequelize);
-}
+    initializeUser(sequelize);
+    initializePlayer(sequelize);
+    defineUserAssociations(Player); //De momento necesario para las imagenes
+};
 
-export { initialize };
+// Exportamos
+export { User, Player, UserPlayer, initialize };

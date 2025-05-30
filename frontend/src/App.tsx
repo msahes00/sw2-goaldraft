@@ -33,16 +33,14 @@ const styles = {
     margin: 10vw;
   `,
   content: css`
-    height: 80vh;
+    flex: 1;
+    min-height: 0;
   `,
   footer: css`
     background-color: #333333;
     color: white;
     text-align: center;
-    position: fixed;
     padding: 0px;
-    bottom: 0;
-    width: 100vw;
     height: 8vh;
     min-height: 50px;
   `,
@@ -64,7 +62,13 @@ function App() {
   }, [loggedUser, location.pathname, navigate]);
 
   return (
-    <>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <header className={styles.header}>
         <span style={{ cursor: "pointer" }} onClick={() => navigate("/user")}>
           <Avatar />
@@ -126,7 +130,7 @@ function App() {
       <footer className={styles.footer}>
         <p>&copy; 2025 Goaldraft. All rights reserved.</p>
       </footer>
-    </>
+    </div>
   );
 }
 

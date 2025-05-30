@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 type Player = {
   id: number;
   name: string;
-  imageId: number;
+  image: string; // base64 o url
 };
 
 type Team = {
@@ -39,14 +39,6 @@ function getRandomPlayers(count: number, pool: Player[]): Player[] {
   return [...pool].sort(() => Math.random() - 0.5).slice(0, count);
 }
 
-function generateFakePlayers(): Player[] {
-  return Array.from({ length: 100 }, (_, i) => ({
-    id: i + 1,
-    name: `Jugador ${i + 1}`,
-    imageId: i + 1,
-  }));
-}
-
 function simulateAllPlayerScores(players: Player[], matchdays: number): PlayerScore {
   const scores: PlayerScore = {};
   players.forEach((player) => {
@@ -75,34 +67,65 @@ function simulateAllPlayerScores(players: Player[], matchdays: number): PlayerSc
 }
 
 export default function Fantasy() {
-  const allPlayers = generateFakePlayers();
-
+  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
+  const [loadingPlayers, setLoadingPlayers] = useState(true);
+  const [state, setState] = useState<GameState | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [tab, setTab] = useState<"clasificacion" | "equipo" | "mercado">("clasificacion");
-  const [state, setState] = useState<GameState>(() => {
-    const simulatedTeams = Array.from({ length: NUM_TEAMS }, (_, i) => ({
-      name: `Equipo ${i + 1}`,
-      points: 0,
-    }));
-    const simulatedTeamsHistory = Array.from({ length: NUM_TEAMS }, () => [0]);
 
-    const userPlayers = getRandomPlayers(TEAM_SIZE, allPlayers);
-    const starters = userPlayers.map(p => p.id);
+  // Carga todos los jugadores con nombre e imagen
+  useEffect(() => {
+    fetch("/api/players")
+      .then(res => res.json())
+      .then(async (ids: { id: number }[]) => {
+        const players: Player[] = await Promise.all(
+          ids.map(async ({ id }) => {
+            // Carga nombre
+            const nameRes = await fetch(`/api/players/${id}`);
+            const { name } = await nameRes.json();
+            // Carga imagen
+            const imgRes = await fetch(`/api/players/${id}/image`);
+            const blob = await imgRes.blob();
+            const image = URL.createObjectURL(blob);
+            return { id, name, image };
+          })
+        );
+        setAllPlayers(players);
+        setLoadingPlayers(false);
+      });
+  }, []);
 
-    const initialScores = simulateAllPlayerScores(allPlayers, 0);
+  // El resto igual, pero usa allPlayers en vez de generateFakePlayers
+  useEffect(() => {
+    if (!loadingPlayers && allPlayers.length > 0 && !state) {
+      const simulatedTeams = Array.from({ length: NUM_TEAMS }, (_, i) => ({
+        name: `Equipo ${i + 1}`,
+        points: 0,
+      }));
+      const simulatedTeamsHistory = Array.from({ length: NUM_TEAMS }, () => [0]);
+      const userPlayers = getRandomPlayers(TEAM_SIZE, allPlayers);
+      const starters = userPlayers.map(p => p.id);
+      const initialScores = simulateAllPlayerScores(allPlayers, 0);
 
-    return {
-      matchday: 0,
-      userTeam: { name: "Mi Equipo", points: 0 },
-      simulatedTeams,
-      simulatedTeamsHistory,
-      userPlayers,
-      starters,
-      scores: initialScores,
-      money: INITIAL_MONEY,
-      market: getRandomPlayers(10, allPlayers),
-      lastUserMatchdayPoints: [],
-    };
-  });
+      setState({
+        matchday: 0,
+        userTeam: { name: "Mi Equipo", points: 0 },
+        simulatedTeams,
+        simulatedTeamsHistory,
+        userPlayers,
+        starters,
+        scores: initialScores,
+        money: INITIAL_MONEY,
+        market: getRandomPlayers(10, allPlayers),
+        lastUserMatchdayPoints: [],
+      });
+    }
+  }, [loadingPlayers, allPlayers, state]);
+
+  if (loadingPlayers || !state) {
+    return <div>Cargando jugadores...</div>;
+  }
 
   const resetGame = () => {
     const simulatedTeams = Array.from({ length: NUM_TEAMS }, (_, i) => ({
@@ -129,9 +152,6 @@ export default function Fantasy() {
       lastUserMatchdayPoints: [],
     });
   };
-
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const buyPlayer = (player: Player) => {
     const average =
@@ -495,13 +515,26 @@ export default function Fantasy() {
               const price = Math.max(PLAYER_PRICE, PLAYER_PRICE * (parseFloat(avg) || 1));
               return (
                 <li key={p.id}>
-                  <div className="player-info">
-                    <span>{p.name}</span>
-                    <span>Media: {avg} | Última: {last} | Precio: {price.toFixed(0)} €</span>
-                  </div>
-                  <div className="player-actions">
-                    <button onClick={() => makeSub(p.id)}>Mandar al banquillo</button>
-                    <button onClick={() => sellPlayer(p.id)}>Vender</button>
+                  <div className="player-info" style={{ flexDirection: "column", alignItems: "center" }}>
+                    <img
+                      src={p.image}
+                      alt={p.name}
+                      style={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: "50%",
+                        marginBottom: 8,
+                        objectFit: "cover"
+                      }}
+                    />
+                    <span style={{ fontWeight: "bold", marginBottom: 4 }}>{p.name}</span>
+                    <span style={{ marginBottom: 8 }}>
+                      Media: {avg} | Última: {last} | Precio: {price.toFixed(0)} €
+                    </span>
+                    <div className="player-actions" style={{ justifyContent: "center" }}>
+                      <button onClick={() => makeSub(p.id)}>Mandar al banquillo</button>
+                      <button onClick={() => sellPlayer(p.id)}>Vender</button>
+                    </div>
                   </div>
                 </li>
               );
@@ -518,18 +551,31 @@ export default function Fantasy() {
                 const price = Math.max(PLAYER_PRICE, PLAYER_PRICE * (parseFloat(avg) || 1));
                 return (
                   <li key={p.id}>
-                    <div className="player-info">
-                      <span>{p.name}</span>
-                      <span>Media: {avg} | Última: {last} | Precio: {price.toFixed(0)} €</span>
-                    </div>
-                    <div className="player-actions">
-                      <button
-                        onClick={() => makeStarter(p.id)}
-                        disabled={state.starters.length >= TEAM_SIZE}
-                      >
-                        Hacer titular
-                      </button>
-                      <button onClick={() => sellPlayer(p.id)}>Vender</button>
+                    <div className="player-info" style={{ flexDirection: "column", alignItems: "center" }}>
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        style={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: "50%",
+                          marginBottom: 8,
+                          objectFit: "cover"
+                        }}
+                      />
+                      <span style={{ fontWeight: "bold", marginBottom: 4 }}>{p.name}</span>
+                      <span style={{ marginBottom: 8 }}>
+                        Media: {avg} | Última: {last} | Precio: {price.toFixed(0)} €
+                      </span>
+                      <div className="player-actions" style={{ justifyContent: "center" }}>
+                        <button
+                          onClick={() => makeStarter(p.id)}
+                          disabled={state.starters.length >= TEAM_SIZE}
+                        >
+                          Hacer titular
+                        </button>
+                        <button onClick={() => sellPlayer(p.id)}>Vender</button>
+                      </div>
                     </div>
                   </li>
                 );

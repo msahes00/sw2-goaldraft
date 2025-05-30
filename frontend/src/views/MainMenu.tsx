@@ -1,4 +1,5 @@
 import { css } from "npm:@emotion/css";
+import { Link } from "npm:react-router-dom";
 
 const styles = {
   container: css`
@@ -37,18 +38,18 @@ function MainMenu() {
   return (
     <>
       <div className={styles.container}>
-        <a className={[styles.button, styles.red].join(' ')} href="/shop">
+        <Link className={[styles.button, styles.red].join(" ")} to="/shop">
           <p>Tienda</p>
-        </a>
-        <a className={[styles.button, styles.blue].join(' ')} href="/collection">
+        </Link>
+        <Link className={[styles.button, styles.blue].join(" ")} to="/collection">
           <p>Colleccion</p>
-        </a>
-        <a className={[styles.button, styles.yellow].join(' ')} href="/draft">
+        </Link>
+        <Link className={[styles.button, styles.yellow].join(" ")} to="/draft">
           <p>Draft</p>
-        </a>
-        <a className={[styles.button, styles.green].join(' ')} href="/fantasy">
+        </Link>
+        <Link className={[styles.button, styles.green].join(" ")} to="/fantasy">
           <p>Fantasy</p>
-        </a>
+        </Link>
       </div>
     </>
   );

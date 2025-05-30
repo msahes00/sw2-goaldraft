@@ -1,4 +1,10 @@
-import { Route, Routes, useNavigate, useLocation, Navigate } from "npm:react-router";
+import {
+  Route,
+  Routes,
+  useNavigate,
+  useLocation,
+  Navigate,
+} from "npm:react-router";
 import { useState, useEffect } from "react";
 import { css } from "npm:@emotion/css";
 import UserView from "./views/UserView.tsx";
@@ -7,6 +13,10 @@ import Coins from "./components/Coins.tsx";
 import LogView from "./views/LogView";
 import MainMenu from "./views/MainMenu.tsx";
 import NotFound from "./views/NotFound.tsx";
+import Draft from "./views/Draft.tsx";
+import Shop from "./views/Shop.tsx";
+import Collection from "./views/Collection.tsx";
+import Fantasy from "./views/Fantasy.tsx";
 
 const styles = {
   header: css`
@@ -82,6 +92,32 @@ function App() {
             path="/"
             element={
               loggedUser ? <MainMenu /> : <Navigate to="/login" replace />
+            }
+          />
+          <Route
+            path="/draft"
+            element={
+              loggedUser ? (
+                <Draft user={loggedUser} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/shop"
+            element={loggedUser ? <Shop /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/collection"
+            element={
+              loggedUser ? <Collection /> : <Navigate to="/login" replace />
+            }
+          />
+          <Route
+            path="/fantasy"
+            element={
+              loggedUser ? <Fantasy /> : <Navigate to="/login" replace />
             }
           />
           <Route path="*" element={<NotFound />} />

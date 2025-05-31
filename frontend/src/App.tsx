@@ -121,7 +121,11 @@ function App() {
           <Route
             path="/fantasy"
             element={
-              loggedUser ? <Fantasy /> : <Navigate to="/login" replace />
+              loggedUser ? (
+                <Fantasy loggedUser={loggedUser} setLoggedUser={setLoggedUser} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
           <Route path="*" element={<NotFound />} />

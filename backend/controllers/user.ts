@@ -136,3 +136,33 @@ export const loginUser = async (ctx: Context) => {
     ctx.response.body = { error: "Failed to login" };
   }
 };
+
+export const updateCoins = async (ctx: Context) => {
+  await connect();
+  const username = ctx?.params?.username;
+  const body = await ctx.request.body.json();
+  const { coins } = body;
+
+  if (typeof coins !== "number") {
+    ctx.response.status = 400;
+    ctx.response.body = { error: "Invalid coins value" };
+    return;
+  }
+
+  try {
+    const user = await User.findOne({ where: { username } });
+    if (!user) {
+      ctx.response.status = 404;
+      ctx.response.body = { error: "User not found" };
+      return;
+    }
+
+    user.coins = (user.coins || 0) + coins;
+    await user.save();
+
+    ctx.response.body = { message: "Coins updated successfully", coins: user.coins };
+  } catch (error) {
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Failed to update coins" };
+  }
+};

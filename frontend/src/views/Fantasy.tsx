@@ -67,13 +67,27 @@ function simulateAllPlayerScores(players: Player[], matchdays: number): PlayerSc
   return scores;
 }
 
-export default function Fantasy() {
+function getPrizeByPosition(pos: number) {
+  if (pos === 1) return 10000;
+  if (pos === 2) return 9000;
+  if (pos === 3) return 8000;
+  if (pos === 4) return 7000;
+  if (pos === 5) return 6000;
+  if (pos === 6) return 5000;
+  if (pos === 7) return 4000;
+  if (pos === 8) return 3000;
+  if (pos === 9) return 2000;
+  return 0;
+}
+
+export default function Fantasy({ loggedUser, setLoggedUser }) {
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
   const [state, setState] = useState<GameState | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [tab, setTab] = useState<"clasificacion" | "equipo" | "mercado">("clasificacion");
+  const [endMessage, setEndMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/players")
@@ -114,7 +128,7 @@ export default function Fantasy() {
         starters,
         scores: initialScores,
         money: INITIAL_MONEY,
-        market: getRandomPlayers(10, allPlayers, userPlayers.map(p => p.id)), // <-- aquí
+        market: getRandomPlayers(10, allPlayers, userPlayers.map(p => p.id)),
         lastUserMatchdayPoints: [],
       });
     }
@@ -244,9 +258,40 @@ export default function Fantasy() {
 
     setState((prev) => {
       const userPlayerIds = prev.userPlayers.map(p => p.id);
+      const newMatchday = prev.matchday + 1;
+
+      if (newMatchday === MAX_MATCHDAYS) {
+        const allTeams = [...updatedSimulatedTeams, {
+          ...prev.userTeam,
+          points: prev.userTeam.points + userPoints,
+          name: prev.userTeam.name,
+        }];
+        allTeams.sort((a, b) => b.points - a.points);
+        const position = allTeams.findIndex(t => t.name === prev.userTeam.name) + 1;
+        const prize = getPrizeByPosition(position);
+
+        setEndMessage(
+          `¡El Fantasy ha terminado! Has quedado en la posición ${position} y has ganado ${prize} monedas.`
+        );
+
+        if (loggedUser?.username && prize > 0) {
+          fetch(`/users/${loggedUser.username}/coins`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ coins: prize }),
+          })
+            .then(res => res.json())
+            .then(data => {
+              if (setLoggedUser) {
+                setLoggedUser((user) => ({ ...user, coins: data.coins }));
+              }
+            });
+        }
+      }
+
       return {
         ...prev,
-        matchday: prev.matchday + 1,
+        matchday: newMatchday,
         userTeam: {
           ...prev.userTeam,
           points: prev.userTeam.points + userPoints,
@@ -283,7 +328,7 @@ export default function Fantasy() {
       money: Math.round(newMoney),
       userPlayers: newUserPlayers,
       starters: prev.starters.filter((starterId) => starterId !== id),
-      market: getRandomPlayers(10, allPlayers, newUserPlayers.map(p => p.id)), // <-- aquí
+      market: getRandomPlayers(10, allPlayers, newUserPlayers.map(p => p.id)),
     }));
   };
 
@@ -471,6 +516,30 @@ export default function Fantasy() {
             onClick={() => setShowConfirm(false)}
           >
             Cancelar
+          </button>
+        </div>
+      )}
+
+      {endMessage && (
+        <div
+          style={{
+            background: "#e6ffe6",
+            border: "2px solid #009900",
+            borderRadius: "8px",
+            padding: "1.5rem",
+            maxWidth: "400px",
+            margin: "2rem auto",
+            boxShadow: "0 2px 12px #0002",
+            textAlign: "center",
+            zIndex: 100,
+          }}
+        >
+          <p>{endMessage}</p>
+          <button
+            style={{ background: "#0a3d62", color: "white", marginTop: "1rem" }}
+            onClick={() => setEndMessage(null)}
+          >
+            Cerrar
           </button>
         </div>
       )}

@@ -4,7 +4,7 @@ type Player = {
   id: number;
   name: string;
   image: string;
-  position: "Portero" | "Defensa" | "Centrocampista" | "Delantero"; // Añadido
+  position: "Portero" | "Defensa" | "Centrocampista" | "Delantero";
 };
 
 type Team = {
@@ -86,10 +86,9 @@ function mapPosition(pos: string): "Portero" | "Defensa" | "Centrocampista" | "D
   if (["CB", "LB", "RB", "LWB", "RWB"].includes(pos)) return "Defensa";
   if (["CDM", "CM", "LM", "RM", "CAM"].includes(pos)) return "Centrocampista";
   if (["ST", "CF", "LF", "RF", "LW", "RW"].includes(pos)) return "Delantero";
-  return "Centrocampista"; // Por defecto
+  return "Centrocampista";
 }
 
-// Orden para las posiciones
 const POSITION_ORDER = {
   "Portero": 0,
   "Defensa": 1,
@@ -113,11 +112,11 @@ export default function Fantasy({ loggedUser, setLoggedUser }) {
         const players: Player[] = await Promise.all(
           ids.map(async ({ id }) => {
             const nameRes = await fetch(`/api/players/${id}`);
-            const { name, position } = await nameRes.json(); // <-- Añadido position
+            const { name, position } = await nameRes.json();
             const imgRes = await fetch(`/api/players/${id}/image`);
             const blob = await imgRes.blob();
             const image = URL.createObjectURL(blob);
-            return { id, name, image, position: mapPosition(position) }; // <-- Añadido
+            return { id, name, image, position: mapPosition(position) };
           })
         );
         setAllPlayers(players);
@@ -132,7 +131,7 @@ export default function Fantasy({ loggedUser, setLoggedUser }) {
         points: 0,
       }));
       const simulatedTeamsHistory = Array.from({ length: NUM_TEAMS }, () => [0]);
-      const userPlayers = getRandomPlayers(TEAM_SIZE, allPlayers);
+      const userPlayers = getValidInitialTeam(allPlayers);
       const starters = userPlayers.map(p => p.id);
       const initialScores = simulateAllPlayerScores(allPlayers, 0);
 
@@ -162,7 +161,7 @@ export default function Fantasy({ loggedUser, setLoggedUser }) {
     }));
     const simulatedTeamsHistory = Array.from({ length: NUM_TEAMS }, () => [0]);
 
-    const userPlayers = getRandomPlayers(TEAM_SIZE, allPlayers);
+    const userPlayers = getValidInitialTeam(allPlayers);
     const starters = userPlayers.map(p => p.id);
 
     const initialScores = simulateAllPlayerScores(allPlayers, 0);
@@ -203,17 +202,39 @@ export default function Fantasy({ loggedUser, setLoggedUser }) {
       ...prev,
       money: Math.round(prev.money - price),
       userPlayers: [...prev.userPlayers, player],
-      market: getRandomPlayers(
-        10,
-        allPlayers,
-        [...prev.userPlayers.map(p => p.id), player.id]
-      ),
+      market: prev.market.filter(p => p.id !== player.id),
     }));
   };
 
+  const validateLineup = (starters: Player[]) => {
+    const counts = { Portero: 0, Defensa: 0, Centrocampista: 0, Delantero: 0 };
+    starters.forEach(p => counts[p.position]++);
+    const errors: string[] = [];
+    if (counts.Portero !== 1) errors.push("Debes tener exactamente 1 portero.");
+    if (counts.Defensa < 3 || counts.Defensa > 5) errors.push("Debes tener entre 3 y 5 defensas.");
+    if (counts.Centrocampista < 3 || counts.Centrocampista > 5) errors.push("Debes tener entre 3 y 5 centrocampistas.");
+    if (counts.Delantero < 1 || counts.Delantero > 3) errors.push("Debes tener entre 1 y 3 delanteros.");
+    return errors;
+  };
+
   const simulateMatchday = () => {
+    const startersPlayers = state.starters
+      .map((id) => state.userPlayers.find(pl => pl.id === id))
+      .filter(Boolean) as Player[];
+
+    const errors = validateLineup(startersPlayers);
+
     if (state.starters.length !== TEAM_SIZE) {
       setShowConfirm(true);
+      setInfoMessage(null);
+      return;
+    }
+
+    if (errors.length > 0) {
+      setShowConfirm(true);
+      setInfoMessage(
+        `Tu alineación no cumple las condiciones: ${errors.join(" ")}`
+      );
       return;
     }
 
@@ -345,7 +366,6 @@ export default function Fantasy({ loggedUser, setLoggedUser }) {
       money: Math.round(newMoney),
       userPlayers: newUserPlayers,
       starters: prev.starters.filter((starterId) => starterId !== id),
-      market: getRandomPlayers(10, allPlayers, newUserPlayers.map(p => p.id)),
     }));
   };
 
@@ -379,6 +399,67 @@ export default function Fantasy({ loggedUser, setLoggedUser }) {
           state.scores[id].length
         ).toFixed(1)
       : "–";
+
+  function getValidInitialTeam(pool: Player[]): Player[] {
+    const posiciones: ("Portero" | "Defensa" | "Centrocampista" | "Delantero")[] = ["Portero"];
+    let defensas = 3 + Math.floor(Math.random() * 3);
+    let centrocampistas = 3 + Math.floor(Math.random() * 3);
+    let delanteros = 11 - (1 + defensas + centrocampistas);
+
+    if (delanteros < 1) {
+      if (defensas > 3) {
+        defensas--;
+        delanteros++;
+      } else if (centrocampistas > 3) {
+        centrocampistas--;
+        delanteros++;
+      }
+    }
+    if (delanteros > 3) {
+      if (defensas > 3) {
+        defensas += 3 - delanteros;
+        delanteros = 3;
+      } else if (centrocampistas > 3) {
+        centrocampistas += 3 - delanteros;
+        delanteros = 3;
+      } else {
+        delanteros = 3;
+      }
+    }
+
+    posiciones.push(...Array(defensas).fill("Defensa"));
+    posiciones.push(...Array(centrocampistas).fill("Centrocampista"));
+    posiciones.push(...Array(delanteros).fill("Delantero"));
+
+    for (let i = posiciones.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [posiciones[i], posiciones[j]] = [posiciones[j], posiciones[i]];
+    }
+
+    const disponibles = {
+      Portero: pool.filter(p => p.position === "Portero"),
+      Defensa: pool.filter(p => p.position === "Defensa"),
+      Centrocampista: pool.filter(p => p.position === "Centrocampista"),
+      Delantero: pool.filter(p => p.position === "Delantero"),
+    };
+
+    const pickRandom = (arr: Player[]) => {
+      const idx = Math.floor(Math.random() * arr.length);
+      return arr.splice(idx, 1)[0];
+    };
+
+    const equipo: Player[] = [];
+    for (const pos of posiciones) {
+      if (disponibles[pos].length === 0) {
+        break;
+      }
+      equipo.push(pickRandom(disponibles[pos]));
+    }
+
+    if (equipo.length < 11) return [];
+
+    return equipo;
+  }
 
   return (
     <div className="fantasy-container">
@@ -473,37 +554,6 @@ export default function Fantasy({ loggedUser, setLoggedUser }) {
         </button>
       </div>
 
-      {}
-      {infoMessage && (
-        <div
-          style={{
-            background: "#fffbe6",
-            border: "1px solid #e1b800",
-            color: "#a67c00",
-            borderRadius: "8px",
-            padding: "1rem",
-            margin: "1rem 0",
-            textAlign: "center",
-          }}
-        >
-          {infoMessage}
-          <button
-            style={{
-              marginLeft: "1rem",
-              background: "#0a3d62",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "0.2rem 0.7rem",
-              cursor: "pointer",
-            }}
-            onClick={() => setInfoMessage(null)}
-          >
-            Cerrar
-          </button>
-        </div>
-      )}
-
       {showConfirm && (
         <div
           style={{
@@ -519,18 +569,27 @@ export default function Fantasy({ loggedUser, setLoggedUser }) {
           }}
         >
           <p>
-            No tienes 11 titulares. ¿Estás seguro de que quieres simular la jornada? <br />
+            {infoMessage
+              ? infoMessage
+              : "No tienes 11 titulares. ¿Estás seguro de que quieres simular la jornada? "}
+            <br />
             <b>Vas a recibir 0 puntos.</b>
           </p>
           <button
             style={{ marginRight: "1rem", background: "#0a3d62" }}
-            onClick={() => doSimulateMatchday(true)}
+            onClick={() => {
+              setInfoMessage(null);
+              doSimulateMatchday(true);
+            }}
           >
             Sí, simular jornada
           </button>
           <button
             style={{ background: "#990000" }}
-            onClick={() => setShowConfirm(false)}
+            onClick={() => {
+              setShowConfirm(false);
+              setInfoMessage(null);
+            }}
           >
             Cancelar
           </button>

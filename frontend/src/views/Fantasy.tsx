@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 type Player = {
   id: number;
   name: string;
-  image: string; // base64 o url
+  image: string;
 };
 
 type Team = {
@@ -32,11 +32,12 @@ type GameState = {
   scores: PlayerScore;
   money: number;
   market: Player[];
-  lastUserMatchdayPoints: number[]; // <-- Añade este campo
+  lastUserMatchdayPoints: number[];
 };
 
-function getRandomPlayers(count: number, pool: Player[]): Player[] {
-  return [...pool].sort(() => Math.random() - 0.5).slice(0, count);
+function getRandomPlayers(count: number, pool: Player[], excludeIds: number[] = []): Player[] {
+  const filteredPool = pool.filter(p => !excludeIds.includes(p.id));
+  return [...filteredPool].sort(() => Math.random() - 0.5).slice(0, count);
 }
 
 function simulateAllPlayerScores(players: Player[], matchdays: number): PlayerScore {
@@ -74,17 +75,14 @@ export default function Fantasy() {
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [tab, setTab] = useState<"clasificacion" | "equipo" | "mercado">("clasificacion");
 
-  // Carga todos los jugadores con nombre e imagen
   useEffect(() => {
     fetch("/api/players")
       .then(res => res.json())
       .then(async (ids: { id: number }[]) => {
         const players: Player[] = await Promise.all(
           ids.map(async ({ id }) => {
-            // Carga nombre
             const nameRes = await fetch(`/api/players/${id}`);
             const { name } = await nameRes.json();
-            // Carga imagen
             const imgRes = await fetch(`/api/players/${id}/image`);
             const blob = await imgRes.blob();
             const image = URL.createObjectURL(blob);
@@ -96,7 +94,6 @@ export default function Fantasy() {
       });
   }, []);
 
-  // El resto igual, pero usa allPlayers en vez de generateFakePlayers
   useEffect(() => {
     if (!loadingPlayers && allPlayers.length > 0 && !state) {
       const simulatedTeams = Array.from({ length: NUM_TEAMS }, (_, i) => ({
@@ -117,7 +114,7 @@ export default function Fantasy() {
         starters,
         scores: initialScores,
         money: INITIAL_MONEY,
-        market: getRandomPlayers(10, allPlayers),
+        market: getRandomPlayers(10, allPlayers, userPlayers.map(p => p.id)), // <-- aquí
         lastUserMatchdayPoints: [],
       });
     }
@@ -148,7 +145,7 @@ export default function Fantasy() {
       starters,
       scores: initialScores,
       money: INITIAL_MONEY,
-      market: getRandomPlayers(10, allPlayers),
+      market: getRandomPlayers(10, allPlayers, userPlayers.map(p => p.id)),
       lastUserMatchdayPoints: [],
     });
   };
@@ -175,12 +172,15 @@ export default function Fantasy() {
       ...prev,
       money: Math.round(prev.money - price),
       userPlayers: [...prev.userPlayers, player],
-      market: prev.market.filter((p) => p.id !== player.id),
+      market: getRandomPlayers(
+        10,
+        allPlayers,
+        [...prev.userPlayers.map(p => p.id), player.id]
+      ),
     }));
   };
 
   const simulateMatchday = () => {
-    // Si no hay 11 titulares, mostrar confirmación
     if (state.starters.length !== TEAM_SIZE) {
       setShowConfirm(true);
       return;
@@ -189,7 +189,6 @@ export default function Fantasy() {
     doSimulateMatchday();
   };
 
-  // Lógica real de simulación de jornada
   const doSimulateMatchday = (forceZeroPoints = false) => {
     if (state.matchday >= MAX_MATCHDAYS) {
       resetGame();
@@ -224,7 +223,6 @@ export default function Fantasy() {
         userPoints += lastScore;
       });
     }
-    // Si forceZeroPoints es true, userPoints se queda en 0
 
     const updatedSimulatedTeams = state.simulatedTeams.map((team) => ({
       ...team,
@@ -238,25 +236,32 @@ export default function Fantasy() {
       updatedSimulatedTeams[idx].points,
     ]);
 
-    const updatedMarket = getRandomPlayers(10, allPlayers);
+    const updatedMarket = getRandomPlayers(
+      10,
+      allPlayers,
+      state.userPlayers.map(p => p.id)
+    );
 
-    setState((prev) => ({
-      ...prev,
-      matchday: prev.matchday + 1,
-      userTeam: {
-        ...prev.userTeam,
-        points: prev.userTeam.points + userPoints,
-      },
-      simulatedTeams: updatedSimulatedTeams,
-      simulatedTeamsHistory: updatedSimulatedTeamsHistory,
-      scores: newScores,
-      market: updatedMarket,
-      money: Math.round(prev.money + userPoints * 100000),
-      lastUserMatchdayPoints: [
-        ...(prev.lastUserMatchdayPoints || []),
-        userPoints,
-      ], // Guarda los puntos de la jornada
-    }));
+    setState((prev) => {
+      const userPlayerIds = prev.userPlayers.map(p => p.id);
+      return {
+        ...prev,
+        matchday: prev.matchday + 1,
+        userTeam: {
+          ...prev.userTeam,
+          points: prev.userTeam.points + userPoints,
+        },
+        simulatedTeams: updatedSimulatedTeams,
+        simulatedTeamsHistory: updatedSimulatedTeamsHistory,
+        scores: newScores,
+        market: getRandomPlayers(10, allPlayers, userPlayerIds),
+        money: Math.round(prev.money + userPoints * 100000),
+        lastUserMatchdayPoints: [
+          ...(prev.lastUserMatchdayPoints || []),
+          userPoints,
+        ],
+      };
+    });
     setShowConfirm(false);
   };
 
@@ -271,11 +276,14 @@ export default function Fantasy() {
     const price = Math.round(Math.max(PLAYER_PRICE, PLAYER_PRICE * average));
     const newMoney = state.money + price;
 
+    const newUserPlayers = state.userPlayers.filter((p) => p.id !== id);
+
     setState((prev) => ({
       ...prev,
       money: Math.round(newMoney),
-      userPlayers: prev.userPlayers.filter((p) => p.id !== id),
+      userPlayers: newUserPlayers,
       starters: prev.starters.filter((starterId) => starterId !== id),
+      market: getRandomPlayers(10, allPlayers, newUserPlayers.map(p => p.id)), // <-- aquí
     }));
   };
 
@@ -403,7 +411,7 @@ export default function Fantasy() {
         </button>
       </div>
 
-      {/* Mensaje de información */}
+      {}
       {infoMessage && (
         <div
           style={{
@@ -476,7 +484,6 @@ export default function Fantasy() {
               .map((team, i) => {
                 let lastPoints = 0;
                 if (team.name === state.userTeam.name) {
-                  // Usa el array de puntos por jornada guardado
                   if (state.matchday > 0 && state.lastUserMatchdayPoints.length > 0) {
                     lastPoints = state.lastUserMatchdayPoints[state.lastUserMatchdayPoints.length - 1];
                   }

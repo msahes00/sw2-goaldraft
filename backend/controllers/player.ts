@@ -125,7 +125,11 @@ const importPlayer = async (ctx: Context) => {
     // Create or update the player and image in the database
     // NOTE: The image id is the same as the player id
     await PlayerImage.upsert({ id: player.id, image }); 
-    const data = await Player.upsert({ ...player, imageId: player.id });
+    const data = await Player.upsert({ 
+      ...player, 
+      imageId: player.id,
+      position: player.position // Añadido
+    });
 
     // Return the player information
     ctx.response.status = 200;

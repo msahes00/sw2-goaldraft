@@ -6,6 +6,7 @@ class Player extends Model {
   declare name: string;
   declare imageId: number;
   declare image: Uint8Array; // Equivalent to node:Buffer
+  declare position: string; // Añadido
 }
 
 class PlayerImage extends Model {
@@ -46,7 +47,11 @@ const initialize = (sequelize: Sequelize) => {
       imageId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-      } 
+      },
+      position: { // Añadido
+        type: DataTypes.STRING,
+        allowNull: false,
+      }
     },
     {
       sequelize: sequelize,

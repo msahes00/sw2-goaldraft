@@ -4,6 +4,7 @@ type Player = {
   id: number;
   name: string;
   image: string;
+  position: "Portero" | "Defensa" | "Centrocampista" | "Delantero"; // Añadido
 };
 
 type Team = {
@@ -80,6 +81,22 @@ function getPrizeByPosition(pos: number) {
   return 0;
 }
 
+function mapPosition(pos: string): "Portero" | "Defensa" | "Centrocampista" | "Delantero" {
+  if (pos === "GK") return "Portero";
+  if (["CB", "LB", "RB", "LWB", "RWB"].includes(pos)) return "Defensa";
+  if (["CDM", "CM", "LM", "RM", "CAM"].includes(pos)) return "Centrocampista";
+  if (["ST", "CF", "LF", "RF", "LW", "RW"].includes(pos)) return "Delantero";
+  return "Centrocampista"; // Por defecto
+}
+
+// Orden para las posiciones
+const POSITION_ORDER = {
+  "Portero": 0,
+  "Defensa": 1,
+  "Centrocampista": 2,
+  "Delantero": 3,
+};
+
 export default function Fantasy({ loggedUser, setLoggedUser }) {
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
@@ -96,11 +113,11 @@ export default function Fantasy({ loggedUser, setLoggedUser }) {
         const players: Player[] = await Promise.all(
           ids.map(async ({ id }) => {
             const nameRes = await fetch(`/api/players/${id}`);
-            const { name } = await nameRes.json();
+            const { name, position } = await nameRes.json(); // <-- Añadido position
             const imgRes = await fetch(`/api/players/${id}/image`);
             const blob = await imgRes.blob();
             const image = URL.createObjectURL(blob);
-            return { id, name, image };
+            return { id, name, image, position: mapPosition(position) }; // <-- Añadido
           })
         );
         setAllPlayers(players);
@@ -583,44 +600,10 @@ export default function Fantasy({ loggedUser, setLoggedUser }) {
 
           <h3>Titulares ({state.starters.length}/11)</h3>
           <ul>
-            {state.starters.map((id) => {
-              const p = state.userPlayers.find(pl => pl.id === id);
-              if (!p) return null;
-              const avg = getAverageScore(p.id);
-              const last = getLastScore(p.id);
-              const price = Math.max(PLAYER_PRICE, PLAYER_PRICE * (parseFloat(avg) || 1));
-              return (
-                <li key={p.id}>
-                  <div className="player-info" style={{ flexDirection: "column", alignItems: "center" }}>
-                    <img
-                      src={p.image}
-                      alt={p.name}
-                      style={{
-                        width: 64,
-                        height: 64,
-                        borderRadius: "50%",
-                        marginBottom: 8,
-                        objectFit: "cover"
-                      }}
-                    />
-                    <span style={{ fontWeight: "bold", marginBottom: 4 }}>{p.name}</span>
-                    <span style={{ marginBottom: 8 }}>
-                      Media: {avg} | Última: {last} | Precio: {price.toFixed(0)} €
-                    </span>
-                    <div className="player-actions" style={{ justifyContent: "center" }}>
-                      <button onClick={() => makeSub(p.id)}>Mandar al banquillo</button>
-                      <button onClick={() => sellPlayer(p.id)}>Vender</button>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-
-          <h3>Suplentes ({state.userPlayers.length - state.starters.length}/{MAX_SQUAD_SIZE - TEAM_SIZE})</h3>
-          <ul>
-            {state.userPlayers
-              .filter((p) => !state.starters.includes(p.id))
+            {state.starters
+              .map((id) => state.userPlayers.find(pl => pl.id === id))
+              .filter(Boolean)
+              .sort((a, b) => POSITION_ORDER[a.position] - POSITION_ORDER[b.position])
               .map((p) => {
                 const avg = getAverageScore(p.id);
                 const last = getLastScore(p.id);
@@ -640,6 +623,49 @@ export default function Fantasy({ loggedUser, setLoggedUser }) {
                         }}
                       />
                       <span style={{ fontWeight: "bold", marginBottom: 4 }}>{p.name}</span>
+                      <span style={{ marginBottom: 4, color: "#0a3d62" }}>
+                        {p.position}
+                      </span>
+                      <span style={{ marginBottom: 8 }}>
+                        Media: {avg} | Última: {last} | Precio: {price.toFixed(0)} €
+                      </span>
+                      <div className="player-actions" style={{ justifyContent: "center" }}>
+                        <button onClick={() => makeSub(p.id)}>Mandar al banquillo</button>
+                        <button onClick={() => sellPlayer(p.id)}>Vender</button>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+          </ul>
+
+          <h3>Suplentes ({state.userPlayers.length - state.starters.length}/{MAX_SQUAD_SIZE - TEAM_SIZE})</h3>
+          <ul>
+            {state.userPlayers
+              .filter((p) => !state.starters.includes(p.id))
+              .sort((a, b) => POSITION_ORDER[a.position] - POSITION_ORDER[b.position])
+              .map((p) => {
+                const avg = getAverageScore(p.id);
+                const last = getLastScore(p.id);
+                const price = Math.max(PLAYER_PRICE, PLAYER_PRICE * (parseFloat(avg) || 1));
+                return (
+                  <li key={p.id}>
+                    <div className="player-info" style={{ flexDirection: "column", alignItems: "center" }}>
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        style={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: "50%",
+                          marginBottom: 8,
+                          objectFit: "cover"
+                        }}
+                      />
+                      <span style={{ fontWeight: "bold", marginBottom: 4 }}>{p.name}</span>
+                      <span style={{ marginBottom: 4, color: "#0a3d62" }}>
+                        {p.position}
+                      </span>
                       <span style={{ marginBottom: 8 }}>
                         Media: {avg} | Última: {last} | Precio: {price.toFixed(0)} €
                       </span>
@@ -665,22 +691,26 @@ export default function Fantasy({ loggedUser, setLoggedUser }) {
           <h2>Mercado</h2>
           <p className="money">Dinero: {state.money.toLocaleString()} €</p>
           <ul>
-            {state.market.map((p) => {
-              const avg = getAverageScore(p.id);
-              const last = getLastScore(p.id);
-              const price = Math.max(PLAYER_PRICE, PLAYER_PRICE * (parseFloat(avg) || 1));
-              return (
-                <li key={p.id}>
-                  <div className="player-info">
-                    <span>{p.name}</span>
-                    <span>Media: {avg} | Última: {last} | Precio: {price.toFixed(0)} €</span>
-                  </div>
-                  <div className="player-actions">
-                    <button onClick={() => buyPlayer(p)}>Fichar</button>
-                  </div>
-                </li>
-              );
-            })}
+            {state.market
+              .sort((a, b) => POSITION_ORDER[a.position] - POSITION_ORDER[b.position])
+              .map((p) => {
+                const avg = getAverageScore(p.id);
+                const last = getLastScore(p.id);
+                const price = Math.max(PLAYER_PRICE, PLAYER_PRICE * (parseFloat(avg) || 1));
+                return (
+                  <li key={p.id}>
+                    <div className="player-info">
+                      <span>
+                        {p.name} <span style={{ color: "#0a3d62", fontWeight: "bold" }}>({p.position})</span>
+                      </span>
+                      <span>Media: {avg} | Última: {last} | Precio: {price.toFixed(0)} €</span>
+                    </div>
+                    <div className="player-actions">
+                      <button onClick={() => buyPlayer(p)}>Fichar</button>
+                    </div>
+                  </li>
+                );
+              })}
           </ul>
         </div>
       )}

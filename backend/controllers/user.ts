@@ -3,6 +3,7 @@ import { hash } from "https://deno.land/x/bcrypt/mod.ts";
 import type { Context } from "jsr:@oak/oak/context";
 import { connect } from "./db.ts";
 import { User } from "../models/user.ts";
+import { Player } from "../models/player.ts"
 
 export const getUser = async (ctx: Context) => {
   await connect();
@@ -160,9 +161,7 @@ export const getUserPlayers = async (ctx: Context) => {
     const players = user.players.map((p: any) => ({
       id: p.id,
       name: p.name,
-      image: `data:image/png;base64,${btoa(
-          String.fromCharCode(...new Uint8Array(p.image))
-      )}`,
+      image:  `/api/players/${p.id}/image`,
     }));
 
     ctx.response.status = 200;

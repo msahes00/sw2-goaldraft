@@ -108,13 +108,17 @@ function App() {
             path="/shop"
             element={loggedUser ? <Shop /> : <Navigate to="/login" replace />}
           />
-          <Route
-            path="/collection"
-            element={
-              loggedUser ? <Collection /> : <Navigate to="/login" replace />
-            }
-          />
-          <Route
+            <Route
+                path="/collection"
+                element={
+                    loggedUser ? (
+                        <Collection loggedUser={loggedUser} setLoggedUser={setLoggedUser} />
+                    ):(
+                        <Navigate to="/login" replace />
+                    )
+                }
+            />
+            <Route
             path="/fantasy"
             element={
               loggedUser ? <Fantasy /> : <Navigate to="/login" replace />

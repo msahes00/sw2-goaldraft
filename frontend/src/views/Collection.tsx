@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
 import PlayerCard from "../components/PlayerCard"; // Asegúrate de importar bien la ruta
 
-function Collection() {
+export function Collection({ loggedUser, setLoggedUser })  {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // TODO: cambiar por el username del usuario logueado
-  const username = "demo";
-
+  const username = loggedUser.username;
+  //console.log(loggedUser);
   useEffect(() => {
-    fetch(`http://localhost:8000/users/${username}/players`)
+    fetch(`http://localhost:3000/users/${username}/players`)
         .then((res) => res.json())
         .then((data) => {
           setPlayers(data);

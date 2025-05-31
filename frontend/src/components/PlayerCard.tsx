@@ -5,10 +5,10 @@ type PlayerCardProps = {
     image: string; // Base64
 };
 
-const PlayerCard: React.FC<PlayerCardProps> = ({ name, image }) => {
+const PlayerCard: React.FC<PlayerCardProps> = ({ name, image, key}) => {
     return (
         <div style={styles.card}>
-            <img src={image} alt={name} style={styles.image} />
+            <img src={image} alt={name} style={styles.image}/>
             <h3>{name}</h3>
         </div>
     );

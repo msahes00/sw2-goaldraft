@@ -5,10 +5,6 @@
 
 Aplicación web basada en Deno, Oak, Vite y React que busca crear un lugar donde los fans del fútbol puedan demostrar sus conocimientos sobre el deporte compitiendo en ligas Fantasy, creando sus propios equipos en drafts y coleccionando a sus jugadores favoritos abriendo distintos tipos de sobres.
 
-<!--
-![Funcionamiento de la aplicación web](docs/overview.png)
--->
-
 
 Un despliegue de la aplicación se puede encontrar en las siguientes direcciones:
 * [http://sw2-project.ddns.net:3000/](http://sw2-project.ddns.net:3000/)
@@ -16,15 +12,6 @@ Un despliegue de la aplicación se puede encontrar en las siguientes direcciones
   * Contraseña del tunnel: 35.223.234.183
 
 > IMPORTANTE: ambos despliegues pueden no estar disponibles debido a diversos factores técnicos.
-<!--
-Credenciales para ambos despliegues:
-* Administrador
-  * Usuario: admin
-  * Contraseña: admin
-* Cliente:
-  * Usuario: user
-  * Contraseña: user
--->
 
 ## Tabla de contenidos
 

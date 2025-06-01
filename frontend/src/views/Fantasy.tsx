@@ -554,6 +554,31 @@ export default function Fantasy({ loggedUser, setLoggedUser }) {
         </button>
       </div>
 
+      {infoMessage && !showConfirm && (
+        <div
+          style={{
+            background: "#ffe6e6",
+            border: "1px solid #990000",
+            color: "#990000",
+            borderRadius: "6px",
+            padding: "1rem",
+            margin: "1rem 0",
+            textAlign: "center",
+            maxWidth: "500px",
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}
+        >
+          {infoMessage}
+          <button
+            style={{ marginLeft: "1rem", background: "#990000" }}
+            onClick={() => setInfoMessage(null)}
+          >
+            Cerrar
+          </button>
+        </div>
+      )}
+
       {showConfirm && (
         <div
           style={{

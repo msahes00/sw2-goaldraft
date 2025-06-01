@@ -159,7 +159,7 @@ export default function Draft({ user ,setLoggedUser}) {
             disabled={loading}
             className={`exit-btn ${loading ? "disabled" : ""}`}
           >
-            {loading ? "Actualizando monedas..." : "Volver al menú principal"}
+            {loading ? "Actualizando monedas..." : "Finalizar Draft"}
           </button>
         </div>
       </div>

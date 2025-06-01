@@ -1,3 +1,5 @@
+import '../styles/DraftGrid.css';
+
 type Player = {
   id: number;
   name: string;
@@ -29,26 +31,39 @@ export default function DraftGrid({ slots, formationPositions }: DraftGridProps)
   const goalkeeperIndex = formationPositions.findIndex(pos => pos === "GK");
 
   return (
-    <div className="w-full max-w-4xl mx-auto mt-6 p-4 bg-green-600 rounded-xl shadow-xl text-white">
-      {/* Delanteros */}
-      <div className="flex justify-around mb-6">
-        {forwardsIndices.map(i => renderSlot(formationPositions[i], positionToSlot, i))}
-      </div>
+    <div className="draftgrid-container">
+      <h2 style={{ textAlign: 'center', fontSize: '1.5rem', marginBottom: '1rem' }}>Alineación</h2>
 
-      {/* Centrocampistas */}
-      <div className="flex justify-around mb-6">
-        {midfieldersIndices.map(i => renderSlot(formationPositions[i], positionToSlot, i))}
-      </div>
+      <LineRow indices={forwardsIndices} positions={formationPositions} map={positionToSlot} title="Delanteros" />
+      <LineRow indices={midfieldersIndices} positions={formationPositions} map={positionToSlot} title="Centrocampistas" />
+      <LineRow indices={defendersIndices} positions={formationPositions} map={positionToSlot} title="Defensas" />
 
-      {/* Defensas */}
-      <div className="flex justify-around mb-6">
-        {defendersIndices.map(i => renderSlot(formationPositions[i], positionToSlot, i))}
-      </div>
+      {goalkeeperIndex !== -1 && (
+        <div className="line-group">
+          {renderSlot("GK", positionToSlot, goalkeeperIndex)}
+        </div>
+      )}
+    </div>
+  );
+}
 
-      {/* Portero */}
-      <div className="flex justify-center">
-        {goalkeeperIndex !== -1 && renderSlot("GK", positionToSlot, goalkeeperIndex)}
-      </div>
+function LineRow({
+  indices,
+  positions,
+  map,
+  title
+}: {
+  indices: number[];
+  positions: string[];
+  map: Record<string, Player | null>;
+  title: string;
+}) {
+  if (indices.length === 0) return null;
+
+  return (
+    <div className="line-group">
+      <div className="line-title">{title}</div>
+      {indices.map(i => renderSlot(positions[i], map, i))}
     </div>
   );
 }
@@ -58,24 +73,17 @@ function renderSlot(pos: string, map: Record<string, Player | null>, idx: number
   const player = map[key];
 
   return (
-    <div
-      key={key}
-      className="w-24 h-32 border-2 border-white border-dashed rounded-lg flex flex-col items-center justify-center bg-white text-black shadow-md"
-    >
+    <div key={key} className="slot-card">
       {player ? (
         <>
-          <img
-            src={`/api/players/${player.id}/image`}
-            alt={player.name}
-            className="w-16 h-16 object-cover rounded-full"
-          />
-          <p className="text-xs text-center mt-1">{player.name}</p>
-          <p className="text-[10px] text-gray-500">{player.position}</p>
+          <img src={`/api/players/${player.id}/image`} alt={player.name} />
+          <p className="slot-name">{player.name}</p>
+          <p className="slot-pos">{player.position}</p>
         </>
       ) : (
         <div className="text-center">
-          <p className="font-bold">{pos}</p>
-          <p className="text-xs text-gray-400">Vacío</p>
+          <p className="slot-name">{pos}</p>
+          <p className="slot-pos">Vacío</p>
         </div>
       )}
     </div>

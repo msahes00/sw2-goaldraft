@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "npm:react-router";
 import PlayerPicker from "../views/PlayerPicker";
 import DraftGrid from "../views/DraftGrid";
+import "../styles/Draft.css";
 
 type Player = {
   id: number;
@@ -10,7 +11,7 @@ type Player = {
   imageId: number;
   score?: number;
   team?: number;
-  country?: number;  
+  country?: number;
 };
 
 const compatiblePositions: Record<string, string[]> = {
@@ -24,7 +25,19 @@ const compatiblePositions: Record<string, string[]> = {
   ST: ["ST", "CF", "LF", "RF"],
 };
 
-const formationPositions = ["GK", "LB", "CB", "CB", "RB", "CM", "CM", "CM", "LW", "ST", "RW"];
+const formationPositions = [
+  "GK",
+  "LB",
+  "CB",
+  "CB",
+  "RB",
+  "CM",
+  "CM",
+  "CM",
+  "LW",
+  "ST",
+  "RW",
+];
 
 export default function Draft({ user }: { user: any }) {
   const navigate = useNavigate();
@@ -35,10 +48,14 @@ export default function Draft({ user }: { user: any }) {
   const currentPosition = formationPositions[currentIndex];
 
   const handlePlayerSelect = (player: Player) => {
-    const isCompatible = compatiblePositions[currentPosition]?.includes(player.position);
+    const isCompatible = compatiblePositions[currentPosition]?.includes(
+      player.position
+    );
 
     if (!isCompatible) {
-      alert(`El jugador no es compatible con la posición actual: ${currentPosition}`);
+      alert(
+        `El jugador no es compatible con la posición actual: ${currentPosition}`
+      );
       return;
     }
 
@@ -55,7 +72,7 @@ export default function Draft({ user }: { user: any }) {
       players.reduce((acc, p) => acc + (p.score ?? 0), 0) / players.length;
 
     const teamCounts: Record<number, number> = {};
-    players.forEach(p => {
+    players.forEach((p) => {
       if (p.team) teamCounts[p.team] = (teamCounts[p.team] || 0) + 1;
     });
     const teamBonus = Object.values(teamCounts).reduce(
@@ -64,8 +81,9 @@ export default function Draft({ user }: { user: any }) {
     );
 
     const countryCounts: Record<number, number> = {};
-    players.forEach(p => {
-      if (p.country) countryCounts[p.country] = (countryCounts[p.country] || 0) + 1;
+    players.forEach((p) => {
+      if (p.country)
+        countryCounts[p.country] = (countryCounts[p.country] || 0) + 1;
     });
     const countryBonus = Object.values(countryCounts).reduce(
       (acc, count) => acc + (count > 1 ? count * 2 : 0),
@@ -105,45 +123,46 @@ export default function Draft({ user }: { user: any }) {
     navigate("/");
   };
 
-
   if (currentIndex !== -1) {
-    const usedIds = slots.filter((p): p is Player => p !== null).map(p => p.id);
+    const usedIds = slots
+      .filter((p): p is Player => p !== null)
+      .map((p) => p.id);
 
     return (
       <PlayerPicker
         onSelect={handlePlayerSelect}
         position={currentPosition}
-        usedIds={usedIds} 
+        usedIds={usedIds}
+        index={currentIndex}
+        formationPositions={formationPositions}
       />
     );
   }
 
   const totalScore = calculateScore(slots);
+  const coinsToAdd = Math.round(totalScore) * 100;
 
   return (
-    <div className="p-4">
-      <p className="mb-4">
-        Formación: <strong>4-3-3</strong>
-      </p>
-      <h3 className="text-lg font-semibold">Plantilla completa:</h3>
-      <DraftGrid slots={slots} formationPositions={formationPositions} />
-      <div className="mt-4 text-lg font-bold">
-        Puntuación total: {totalScore.toFixed(1)}
-      </div>
+    <div className="draft-container">
+      <div className="draft-card">
+        <div className="draft-header">
+          <div className="score">Monedas ganadas: {coinsToAdd}</div>
+          <div className="score">Puntuación total: {totalScore.toFixed(1)}</div>
+        </div>
 
-      <button
-        onClick={exitDraft}
-        disabled={loading}
-        style={{
-          marginTop: "20px",
-          padding: "10px 15px",
-          fontSize: "16px",
-          cursor: loading ? "not-allowed" : "pointer",
-          opacity: loading ? 0.6 : 1,
-        }}
-      >
-        {loading ? "Actualizando monedas..." : "Volver al menú principal"}
-      </button>
+        <h3 className="section-title">Plantilla completa:</h3>
+        <DraftGrid slots={slots} formationPositions={formationPositions} />
+
+        <div className="action">
+          <button
+            onClick={exitDraft}
+            disabled={loading}
+            className={`exit-btn ${loading ? "disabled" : ""}`}
+          >
+            {loading ? "Actualizando monedas..." : "Volver al menú principal"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

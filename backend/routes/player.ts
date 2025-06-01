@@ -46,6 +46,13 @@ router.get("/:id/image", player.getPlayerImage);
  */
 router.get("/import/:id", player.importPlayer);
 
+/*
+ * GET /random/:position
+ * Returns a random selection of 5 players for the given position
+ * OK: 200 with player information
+ * Error: 400 if position is invalid, 500 if an error has occurred
+ */
+router.get("/random/:position",player.getRandomPlayersByPosition);
 
 // Export the router
 export default router;

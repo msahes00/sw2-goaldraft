@@ -66,33 +66,36 @@ const getPlayer = async (ctx: Context) => {
  */
 const getPlayerImage = async (ctx: Context) => {
   try {
-    // Get the player id to fetch
-    // @ts-ignore: ctx.params.id will be defined when the route is called
+    // @ts-ignore
     const id = ctx?.params?.id;
     if (!id) throw new Error("Player ID is required");
 
-    // Fetch the player image from the database
+    // Buscar imagen en la base de datos
     const playerImage = await PlayerImage.findOne({ where: { id } });
-    if (!playerImage) throw new Error("Player image not found");
 
-    const image = playerImage.image;
+    let image: Buffer;
 
-    // Set the code and the headers
+    if (playerImage) {
+      image = playerImage.image;
+      console.log(`Imagen para jugador ${id} obtenida desde la base de datos.`);
+    } else {
+      // Si no existe en la base de datos, se consulta directamente a la API
+      console.log(`Imagen para jugador ${id} no encontrada en DB. Solicitando a la API...`);
+      image = await fetchPlayerImage(Number(id));
+    }
+
+    // Setear respuesta
     ctx.response.status = 200;
     ctx.response.headers.set("Content-Type", "image/png");
     ctx.response.headers.set("Content-Length", image.length.toString());
-
-    // Set the response body to the image
     ctx.response.body = image;
 
-  } catch(error) {
-    console.error(error);
+  } catch (error) {
+    console.error("Error en getPlayerImage:", error);
     ctx.response.status = 500;
-
-    // Return the error message if any
-    if (error instanceof Error) {
-      ctx.response.body = { message: error.message };
-    }
+    ctx.response.body = {
+      message: error instanceof Error ? error.message : "Unknown error"
+    };
   }
 };
 
@@ -193,6 +196,33 @@ const search = async (ctx: Context) => {
 };
 
 /*
+ * Returns a random set of players from a given position.
+ */
+
+const getRandomPlayersByPosition = async (ctx: Context) => {
+  const position = ctx.params?.position?.toUpperCase();
+  const count = 5;
+
+  if (!position || !staticPlayerIdsByPosition[position]) {
+    ctx.response.status = 400;
+    ctx.response.body = { message: "Posición inválida" };
+    return;
+  }
+
+  try {
+    const randomIds = getRandomUniqueItems(staticPlayerIdsByPosition[position], count);
+    const players = await Promise.all(randomIds.map(fetchPlayer));
+
+    ctx.response.status = 200;
+    ctx.response.body = players;
+  } catch (error) {
+    console.error("Error al obtener jugadores:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { message: "Error al obtener jugadores" };
+  }
+};
+
+/*
  * A helper function to fetch the player information
  */
 const fetchPlayer = async (id: number) => {
@@ -242,6 +272,33 @@ const fetchPlayerImage = async (id: number) => {
   return Buffer.from(await response.arrayBuffer());
 };
 
+/*
+ * A helper function to get a random set of unique items from an array.
+ */
+
+function getRandomUniqueItems<T>(array: T[], count: number): T[] {
+  const copy = [...array];
+  const result: T[] = [];
+  const max = Math.min(count, copy.length);
+
+  for (let i = 0; i < max; i++) {
+    const idx = Math.floor(Math.random() * copy.length);
+    result.push(copy[idx]);
+    copy.splice(idx, 1)
+  }
+  return result;
+}
+
+const staticPlayerIdsByPosition: Record<string, number[]> = {
+  GK: [33, 61, 83, 84, 85, 129, 139, 141, 190, 193, 522],
+  LB: [30, 88, 112, 124, 135, 142, 152, 218, 284, 483],
+  CB: [11, 13, 15, 121, 122, 123, 162, 485, 487, 2243],
+  RB: [10, 20, 28, 67, 185, 187, 256, 266, 274, 393],
+  CM: [3, 4, 7, 8, 43, 44, 98, 100, 382, 523],
+  LW: [26, 90, 101, 109, 110, 126, 237, 244, 255, 383],
+  RW: [5, 34, 87, 91, 92, 188, 245, 325, 329, 521],
+  ST: [1, 2, 6, 42, 47, 50, 86, 324, 338, 340, 524],
+};
 
 // Export the functions
-export { getAll, getPlayer, getPlayerImage, importPlayer, search };
+export { getAll, getPlayer, getPlayerImage, importPlayer, search, getRandomPlayersByPosition};

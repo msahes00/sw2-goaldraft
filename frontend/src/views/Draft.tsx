@@ -39,7 +39,7 @@ const formationPositions = [
   "RW",
 ];
 
-export default function Draft({ user }: { user: any }) {
+export default function Draft({ user ,setLoggedUser}) {
   const navigate = useNavigate();
   const [slots, setSlots] = useState<(Player | null)[]>(Array(11).fill(null));
   const [loading, setLoading] = useState(false);
@@ -118,7 +118,7 @@ export default function Draft({ user }: { user: any }) {
     const totalScore = calculateScore(slots);
     const coinsToAdd = Math.round(totalScore) * 100;
     await updateCoins(coinsToAdd);
-
+    setLoggedUser((user) => ({ ...user, coins: coinsToAdd + user.coins }));
     setSlots(Array(11).fill(null));
     navigate("/");
   };

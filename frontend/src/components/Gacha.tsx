@@ -77,9 +77,9 @@ const styles = {
   `,
 };
 
-function Gacha ({ visible = false, level = 0, setVisible, user }) {
+function Gacha ({ visible = false, level = 0, setVisible, user, setLoggedUser }) {
 
-  const price = 1000 * level;
+  const price = 100 * level;
   const modal = [styles.modal];
   const pull = [styles.button];
   const [players, setPlayers] = useState([]);
@@ -90,33 +90,46 @@ function Gacha ({ visible = false, level = 0, setVisible, user }) {
   
   const handleOnePull = async () => {
 
-    if (!user || user.coins < price) return;
+    if (!user || user.coins < price) {
+      alert("No tienes suficientes monedas");
+      return;
+    }
 
     const response = await fetch('/api/players/search', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ count: 5, random: true, rarity: level }),
+      body: JSON.stringify({ 
+        count: 5, 
+        random: true, 
+        rarity: { 
+          min: 0, 
+          max: level 
+        } 
+      }),
     });
 
     const result = await response.json();
     setPlayers(result);
 
-    if (!result) return;
+    if (!result || result.length === 0) {
+      alert("No se ha podido abrir un sobre vacio");
+      return;
+    }
 
     // Update user and send updated data
-    user.coins  -= price;
-    user.players = result;
+    user.coins -= price;
 
     await fetch(`/users/${user.username}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(user),
+      body: JSON.stringify({ ...user, players: result }),
     });
 
+    setLoggedUser({...user});
 
     setTimeout(() => setPlayers([]), 3000);
   }

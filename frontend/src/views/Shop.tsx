@@ -31,7 +31,7 @@ const styles = {
   `,
 };
 
-function Shop({ user }) {
+function Shop({ user, setLoggedUser }) {
   const [gachaVisible, setGachaVisible] = useState(false);
   const [gachaLevel  , setGachaLevel  ] = useState(0);
 
@@ -40,24 +40,24 @@ function Shop({ user }) {
       <div className={styles.container}>
         <div
           className={[styles.button, styles.blue].join(" ")}
-          onClick={() => { setGachaVisible(true); setGachaLevel(1); }}
+          onClick={() => { setGachaVisible(true); setGachaLevel(25); }}
         >
           <p>Sobre Basico</p>
         </div>
         <div
           className={[styles.button, styles.yellow].join(" ")}
-          onClick={() => { setGachaVisible(true); setGachaLevel(2); }}
+          onClick={() => { setGachaVisible(true); setGachaLevel(50); }}
         >
           <p>Sobre Avanzado</p>
         </div>
         <div
           className={[styles.button, styles.purple].join(" ")}
-          onClick={() => { setGachaVisible(true); setGachaLevel(3); }}
+          onClick={() => { setGachaVisible(true); setGachaLevel(100); }}
         >
           <p>Sobre Pro</p>
         </div>
       </div>
-      <Gacha user={user} visible={gachaVisible} setVisible={setGachaVisible} level={gachaLevel}/>
+      <Gacha user={user} setLoggedUser={setLoggedUser} visible={gachaVisible} setVisible={setGachaVisible} level={gachaLevel}/>
     </>
   );
 }

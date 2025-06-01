@@ -1,4 +1,5 @@
 import {
+  Link,
   Route,
   Routes,
   useNavigate,
@@ -31,8 +32,11 @@ const styles = {
   `,
   title: css`
     margin: 10vw;
+    color: white;
+    text-decoration: none;
   `,
   content: css`
+    display: grid;
     flex: 1;
     min-height: 0;
   `,
@@ -73,7 +77,9 @@ function App() {
         <span style={{ cursor: "pointer" }} onClick={() => navigate("/user")}>
           <Avatar />
         </span>
-        <h1 className={styles.title}>Goaldraft</h1>
+        <Link to="/">
+          <h1 className={styles.title}>Goaldraft</h1>
+        </Link>
         <Coins user={loggedUser} />
       </header>
       <main className={styles.content}>
@@ -102,12 +108,15 @@ function App() {
             path="/draft"
             element={
               loggedUser ? (
-                <Draft user={loggedUser} setLoggedUser={setLoggedUser} /> ) : ( <Navigate to="/login" replace /> )
+                <Draft user={loggedUser} setLoggedUser={setLoggedUser} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
           <Route
             path="/shop"
-            element={loggedUser ? <Shop user={loggedUser}/> : <Navigate to="/login" replace />}
+            element={loggedUser ? <Shop user={loggedUser} setLoggedUser={setLoggedUser} /> : <Navigate to="/login" replace />}
           />
             <Route
                 path="/collection"

@@ -31,8 +31,7 @@ if (import.meta.main) {
   if (!connection) Deno.exit(1);
 
   // Initalize all the models and sync them with the database
-  models.initialize(connection);
-  await connection.sync();
+  await models.initialize(connection);
 
   // Add a callback to run as soon as the server starts
   app.addEventListener("listen", ({ hostname, port, secure }) => {

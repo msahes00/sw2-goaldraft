@@ -1,5 +1,6 @@
 // Import dependencies
 import { Context } from "@oak/oak/context";
+import { Op } from "sequelize";
 import { Buffer } from "node:buffer";
 
 import { Player, PlayerImage } from "../models/player.ts";
@@ -66,25 +67,28 @@ const getPlayer = async (ctx: Context) => {
  */
 const getPlayerImage = async (ctx: Context) => {
   try {
-    // @ts-ignore
+    // Get the player id to fetch
+    // @ts-ignore: ctx.params.id will be defined when the route is called
     const id = ctx?.params?.id;
     if (!id) throw new Error("Player ID is required");
 
-    // Buscar imagen en la base de datos
-    const playerImage = await PlayerImage.findOne({ where: { id } });
+    // Search the player with the given id and get the corresponding image
+    let player = await Player.findOne({ where: { id } });
 
-    let image: Buffer;
+    // Auto import the player if its not found
+    if (!player) {
+      await importPlayer(ctx);
 
-    if (playerImage) {
-      image = playerImage.image;
-      console.log(`Imagen para jugador ${id} obtenida desde la base de datos.`);
-    } else {
-      // Si no existe en la base de datos, se consulta directamente a la API
-      console.log(`Imagen para jugador ${id} no encontrada en DB. Solicitando a la API...`);
-      image = await fetchPlayerImage(Number(id));
+      player = await Player.findOne({ where: { id } });
+
+      // Stop if the player is not found
+      if (!player) return;
     }
 
-    // Setear respuesta
+    // Return the resulting image
+    const playerImage = await PlayerImage.findByPk(player.imageId);
+    const image = playerImage?.image;
+
     ctx.response.status = 200;
     ctx.response.headers.set("Content-Type", "image/png");
     ctx.response.headers.set("Content-Length", image.length.toString());
@@ -131,7 +135,6 @@ const importPlayer = async (ctx: Context) => {
     const data = await Player.upsert({ 
       ...player, 
       imageId: player.id,
-      position: player.position
     });
 
     // Return the player information
@@ -162,7 +165,21 @@ const search = async (ctx: Context) => {
     delete body.count;
     delete body.random;
 
+    // Prepare the where clause for Sequelize
+    const where: Record<string, any> = {};
+    const rangeFilters: Record<string, { min: number; max: number }> = {};
+
+    // Separate range filters from exact match filters
+    for (const key in body) {
+      if (body[key] && typeof body[key] === 'object' && body[key].min !== undefined && body[key].max !== undefined) {
+        rangeFilters[key] = body[key];
+      } else {
+        where[key] = body[key];
+      }
+    }
+
     // Prepare the options passed to Sequelize and the result variable
+    Object.keys(rangeFilters).forEach(key => { where[key] = { [Op.between]: [rangeFilters[key].min, rangeFilters[key].max] }; });
     const options = { where: body };
     let players;
 
@@ -200,6 +217,8 @@ const search = async (ctx: Context) => {
  */
 
 const getRandomPlayersByPosition = async (ctx: Context) => {
+
+  // @ts-ignore: ctx.params.position will be defined when the route is called
   const position = ctx.params?.position?.toUpperCase();
   const count = 5;
 

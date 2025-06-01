@@ -3,10 +3,9 @@
 
 # Título del proyecto de aplicación web
 
-Aplicación web basada en Deno, Oak, Vite y React 
-<!--
-que ofrece una tienda virtual innovadora para la compra y colección de cartas del juego de cartas coleccionables Yu-Gi-Oh!. Diseñada para proporcionar una experiencia de compra funcional y útil, esta aplicación permite a los duelistas acceder a una vasta colección de cartas desde cualquier dispositivo.
+Aplicación web basada en Deno, Oak, Vite y React que busca crear un lugar donde los fans del fútbol puedan demostrar sus conocimientos sobre el deporte compitiendo en ligas Fantasy, creando sus propios equipos en drafts y coleccionando a sus jugadores favoritos abriendo distintos tipos de sobres.
 
+<!--
 ![Funcionamiento de la aplicación web](docs/overview.png)
 -->
 
@@ -14,7 +13,7 @@ que ofrece una tienda virtual innovadora para la compra y colección de cartas d
 Un despliegue de la aplicación se puede encontrar en las siguientes direcciones:
 * [http://sw2-project.ddns.net:3000/](http://sw2-project.ddns.net:3000/)
 * [https://goaldraft.loca.lt/](https://goaldraft.loca.lt/)
-  * Contraseña del tunnel: 34.16.92.15
+  * Contraseña del tunnel: 35.223.234.183
 
 > IMPORTANTE: ambos despliegues pueden no estar disponibles debido a diversos factores técnicos.
 <!--
@@ -78,14 +77,12 @@ Este proyecto ha sido desarrollado utilizando:
 │   │   └── *.ts                    
 │   ├── routes/                     # Rutas de la aplicación
 │   │   └── *.ts                    
-│   ├── views/                      # Vistas de la aplicación (404)
-│   │   └── *.ts                    
 │   └── app.ts                      # Punto de entrada del backend
 ├── frontend/                       # Frontend de le aplicación
 │   ├── public/                     # Archivos de acceso publico (manifiestos, iconos...)
 │   │   └── *
 │   ├── src/                        
-│   │   ├── styles/                 # Directorio para almacenar los estilos css
+│   │   ├── styles/                 # Directorio para almacenar los estilos css especificos
 │   │   │   └── *.css
 │   │   ├── assets/                 # Archivos estáticos (imágenes, SVGs, tipografias)
 │   │   │   └── *
@@ -94,7 +91,8 @@ Este proyecto ha sido desarrollado utilizando:
 │   │   ├── views/                  # Directorio para almacenar las distintas paginas
 │   │   │   └── *.tsx
 │   │   └── App.tsx                 # Vista principal de la aplicacion
-│   ├── main.tsx                    # Punto de entrada para el frontend
+│   ├── index.tsx                   # Punto de entrada para el frontend
+│   ├── index.css                   # Estilos globales de la aplicacion
 │   └── index.html
 ├── .gitignore                      # Archivos que no se van a subir al repositorio
 ├── .dockerignore                   # Archivos que no se van a utillizar en Docker
@@ -130,14 +128,21 @@ Ambas versiones de la configuración se realizan a traves del fichero `.env` que
 Para la version de desarrollo basta con configurar las siguientes variables:
 
 ```bash
-# La url de la base de datos
-DB_URI = "mysql://<usuario>:<contraseña>@localhost:3306/db"
+# Las credenciales para la base de datos
+DB_NAME = "db"
+DB_USER = "admin"
+DB_PASS = "admin"
+DB_PORT = 3306
+DB_HOST = "127.0.0.1"
 
 # El puerto en el que la aplicación estará escuchando
 PORT = 3000
+
+# El token para acceder a la api (https://api.futdatabase.com)
+FUTAPI_TOKEN=""
 ```
 
-Para la version de producción, se proporciona un archivo `.env.example` de ejemplo, con todas las variables necesarias para su correcto funcionamiento.  
+Para la version de producción, se proporciona un archivo `example.env` de ejemplo, con todas las variables necesarias para su correcto funcionamiento.  
 
 
 ### Ejecución
@@ -188,6 +193,12 @@ Para detener el despliegue, se debe ejecutar el siguiente comando:
 
 ```bash
 $ docker-compose down
+```
+
+Para probar el desplieque con los cambios en local, se utiliza el siguiente commando:
+
+```bash
+$ docker-compose up -d --build
 ```
 
 > Dependiendo de la instalación de Docker, el comando `docker-compose` puede ser sustituido por `docker compose`.

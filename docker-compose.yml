@@ -1,6 +1,8 @@
 services:
   app:
     image: ghcr.io/msahes00/sw2-goaldraft:latest
+    # The line below allows for local testing via the --build flag
+    build: .
     restart: unless-stopped
     ports:
       - "${PORT}:${PORT}"
@@ -29,7 +31,7 @@ services:
       - db
 
   db:
-    image: mariadb:latest
+    image: mysql:latest # mariadb:latest can be used as well
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
@@ -38,6 +40,9 @@ services:
       MYSQL_PASSWORD: ${DB_PASS}
     volumes:
       - db:/var/lib/mysql
+    # Comment the port section below for production or deploy with firewall to avoid exposing the database
+    ports:
+      - "${DB_PORT}:3306"
 
 volumes:
   db:

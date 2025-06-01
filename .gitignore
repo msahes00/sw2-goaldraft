@@ -131,3 +131,6 @@ dist
 
 # Vite related
 **/.vite
+
+# deno Lockfile
+deno.lock

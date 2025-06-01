@@ -16,7 +16,7 @@ const getAll = async (ctx: Context) => {
   try {
     // Get all the cards
     const players = await Player.findAll();
-    
+
     // And return them
     ctx.response.status = 200;
     ctx.response.body = players;
@@ -128,7 +128,7 @@ const importPlayer = async (ctx: Context) => {
     const data = await Player.upsert({ 
       ...player, 
       imageId: player.id,
-      position: player.position // Añadido
+      position: player.position
     });
 
     // Return the player information
@@ -146,6 +146,51 @@ const importPlayer = async (ctx: Context) => {
   }
 };
 
+/*
+ * Search for players based on count and randomness
+ */
+const search = async (ctx: Context) => {
+  try {
+    const body = await ctx.request.body.json();
+    const count = body.count;
+    const random = body.random;
+
+    // Remove count and random from the body to use the rest as search criteria
+    delete body.count;
+    delete body.random;
+
+    // Prepare the options passed to Sequelize and the result variable
+    const options = { where: body };
+    let players;
+
+    // Handle random search
+    if (random) {
+      const allPlayers = await Player.findAll(options);
+
+      // Shuffle the players and take the first count
+      players = allPlayers
+        .sort(() => 0.5 - Math.random())
+        .slice(0, count);
+    
+    } else { 
+      // Otherwise just pass the limit to Sequelize directly
+      players = await Player.findAll({ ...options, limit: count });
+    }
+
+    // Finally return the results
+    ctx.response.status = 200;
+    ctx.response.body = players;
+
+  } catch (error) {
+    console.error(error);
+    ctx.response.status = 500;
+
+    // Return the error message if any
+    if (error instanceof Error) {
+      ctx.response.body = { message: error.message };
+    }
+  }
+};
 
 /*
  * A helper function to fetch the player information
@@ -165,10 +210,10 @@ const fetchPlayer = async (id: number) => {
   if (!response.ok) {
     throw new Error("Failed to fetch player information: " + response.statusText);
   }
-  
+
   // Get the player information as JSON
   const info = await response.json();
-  
+
   // Return the player information
   return info.player;
 };
@@ -199,4 +244,4 @@ const fetchPlayerImage = async (id: number) => {
 
 
 // Export the functions
-export { getAll, getPlayer, getPlayerImage, importPlayer };
+export { getAll, getPlayer, getPlayerImage, importPlayer, search };

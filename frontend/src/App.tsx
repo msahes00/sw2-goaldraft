@@ -10,7 +10,7 @@ import { css } from "npm:@emotion/css";
 import UserView from "./views/UserView.tsx";
 import Avatar from "./components/Avatar.tsx";
 import Coins from "./components/Coins.tsx";
-import LogView from "./views/LogView";
+import LogView from "./views/LogView.tsx";
 import MainMenu from "./views/MainMenu.tsx";
 import NotFound from "./views/NotFound.tsx";
 import Draft from "./views/Draft.tsx";
@@ -110,15 +110,19 @@ function App() {
           />
           <Route
             path="/shop"
-            element={loggedUser ? <Shop /> : <Navigate to="/login" replace />}
+            element={loggedUser ? <Shop user={loggedUser}/> : <Navigate to="/login" replace />}
           />
-          <Route
-            path="/collection"
-            element={
-              loggedUser ? <Collection /> : <Navigate to="/login" replace />
-            }
-          />
-          <Route
+            <Route
+                path="/collection"
+                element={
+                    loggedUser ? (
+                        <Collection loggedUser={loggedUser} setLoggedUser={setLoggedUser} />
+                    ):(
+                        <Navigate to="/login" replace />
+                    )
+                }
+            />
+            <Route
             path="/fantasy"
             element={
               loggedUser ? (

@@ -14,6 +14,14 @@ const router = new Router();
 router.get("/", player.getAll);
 
 /*
+ * POST /search
+ * Search for players in the database
+ * OK: 200 with players information
+ * Error: 500 if an error has occurred
+ */
+router.post("/search", player.search);
+
+/*
 * GET /:id
 * Returns the player information
 * OK: 200 with players information

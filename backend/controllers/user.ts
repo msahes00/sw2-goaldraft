@@ -3,6 +3,7 @@ import { hash } from "https://deno.land/x/bcrypt/mod.ts";
 import type { Context } from "jsr:@oak/oak/context";
 import { connect } from "./db.ts";
 import { User } from "../models/user.ts";
+import { Player } from "../models/player.ts"
 
 export const getUser = async (ctx: Context) => {
   await connect();
@@ -10,7 +11,7 @@ export const getUser = async (ctx: Context) => {
   try {
     const user = await User.findOne({
       where: { username },
-      attributes: ["username", "coins", "collection"],
+      attributes: ["username", "coins"],
     });
     if (!user) {
       ctx.response.status = 404;
@@ -28,7 +29,7 @@ export const updateUser = async (ctx: Context) => {
   await connect();
   const username = ctx?.params?.username;
   const body = await ctx.request.body.json();
-  const { newUsername, password } = body;
+  const { newUsername, password, coins, players } = body;
 
   try {
     const user = await User.findOne({ where: { username } });
@@ -43,6 +44,14 @@ export const updateUser = async (ctx: Context) => {
     }
     if (password) {
       user.password = await hash(password);
+    }
+
+    if (coins) 
+      user.coins = coins;
+    
+    if (players) {
+      const ids = players.map((p) => p.id);
+      user.addPlayers(ids);
     }
 
     await user.save();
@@ -134,6 +143,41 @@ export const loginUser = async (ctx: Context) => {
   } catch (error) {
     ctx.response.status = 500;
     ctx.response.body = { error: "Failed to login" };
+  }
+};
+
+export const getUserPlayers = async (ctx: Context) => {
+  await connect();
+  const username = ctx.params.username;
+
+  try {
+    const user = await User.findOne({
+      where: { username },
+      include: {
+        model: Player,
+        as: "players",
+        through: { attributes: [] },
+      },
+    });
+
+    if (!user) {
+      ctx.response.status = 404;
+      ctx.response.body = { error: "Usuario no encontrado" };
+      return;
+    }
+
+    const players = user.players.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      image:  `/api/players/${p.id}/image`,
+    }));
+
+    ctx.response.status = 200;
+    ctx.response.body = players;
+  } catch (error) {
+    console.error("Error en getUserPlayers:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Error al obtener las cartas del usuario" };
   }
 };
 

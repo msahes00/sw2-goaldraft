@@ -102,10 +102,7 @@ function App() {
             path="/draft"
             element={
               loggedUser ? (
-                <Draft user={loggedUser} />
-              ) : (
-                <Navigate to="/login" replace />
-              )
+                <Draft user={loggedUser} setLoggedUser={setLoggedUser} /> ) : ( <Navigate to="/login" replace /> )
             }
           />
           <Route

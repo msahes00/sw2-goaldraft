@@ -29,7 +29,7 @@ export const updateUser = async (ctx: Context) => {
   await connect();
   const username = ctx?.params?.username;
   const body = await ctx.request.body.json();
-  const { newUsername, password } = body;
+  const { newUsername, password, coins, players } = body;
 
   try {
     const user = await User.findOne({ where: { username } });
@@ -44,6 +44,14 @@ export const updateUser = async (ctx: Context) => {
     }
     if (password) {
       user.password = await hash(password);
+    }
+
+    if (coins) 
+      user.coins = coins;
+    
+    if (players) {
+      const ids = players.map((p) => p.id);
+      user.addPlayers(ids);
     }
 
     await user.save();

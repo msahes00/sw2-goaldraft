@@ -7,7 +7,7 @@ export function Collection({ loggedUser, setLoggedUser })  {
   const username = loggedUser.username;
   //console.log(loggedUser);
   useEffect(() => {
-    fetch(`http://localhost:3000/users/${username}/players`)
+    fetch(`/users/${username}/players`)
         .then((res) => res.json())
         .then((data) => {
           setPlayers(data);

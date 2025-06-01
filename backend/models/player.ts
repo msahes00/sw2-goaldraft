@@ -4,6 +4,7 @@ import { DataTypes, Model, Sequelize } from "npm:sequelize";
 class Player extends Model {
     declare id: number;
     declare name: string;
+    declare rarity: number;
     declare imageId: number;
     declare image: Uint8Array; // Equivalent to node:Buffer
 }
@@ -41,6 +42,10 @@ const initialize = (sequelize: Sequelize) => {
             },
             name: {
                 type: DataTypes.STRING,
+                allowNull: false,
+            },
+            rarity: {
+                type: DataTypes.INTEGER,
                 allowNull: false,
             },
             imageId: {

@@ -7,6 +7,7 @@ class Player extends Model {
     declare rarity: number;
     declare imageId: number;
     declare image: Uint8Array; // Equivalent to node:Buffer
+    declare position: string;
 }
 
 class PlayerImage extends Model {
@@ -51,12 +52,16 @@ const initialize = (sequelize: Sequelize) => {
             imageId: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
+            },
+            position: {
+              type: DataTypes.STRING,
+              allowNull: false,
             }
-        },
-        {
-            sequelize: sequelize,
-        },
-    );
+          },
+          {
+             sequelize: sequelize,
+           },
+          );
 
     // Define the relationships
     Player.belongsTo(PlayerImage, {
